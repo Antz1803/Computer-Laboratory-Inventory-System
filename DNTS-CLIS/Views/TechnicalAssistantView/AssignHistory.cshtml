@@ -1,0 +1,119 @@
+﻿@model List<string>
+
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+    ViewData["Title"] = "Assign History";
+    var laboratories = ViewBag.Laboratories as List<string> ?? new List<string>();
+}
+
+<h2>Assign History</h2>
+
+<div class="form-group">
+    <label for="selectedLaboratory">Select Laboratory:</label>
+    <select id="selectedLaboratory" class="form-control" onchange="fetchTrackNumbers()">
+        <option value="">-- Select Laboratory --</option>
+        @foreach (var lab in laboratories)
+        {
+            <option value="@lab">@lab</option>
+        }
+    </select>
+</div>
+
+<div class="form-group mt-3">
+    <label for="selectedTrackNo">Assigned Track Numbers:</label>
+    <select id="selectedTrackNo" class="form-control" onchange="fetchTableData()">
+        <option value="">-- Select Track No --</option>
+    </select>
+</div>
+
+<!-- Table to display data -->
+<div class="mt-4">
+    <h4 class="mb-3">Track Details</h4>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered text-center" id="trackTable">
+            <thead class="table-dark">
+                <tr id="tableHead"></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function fetchTrackNumbers() {
+        let laboratory = document.getElementById("selectedLaboratory").value;
+        let trackNoDropdown = document.getElementById("selectedTrackNo");
+        trackNoDropdown.innerHTML = "<option value=''>-- Select Track No --</option>";
+
+        if (laboratory) {
+            fetch(`/TechnicalAssistantView/GetAssignedTracks?laboratoryName=${encodeURIComponent(laboratory)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Received Track Numbers:", data);
+
+                    if (data.length === 0) {
+                        alert("No Track Numbers assigned.");
+                    }
+
+                    data.forEach(trackNo => {
+                        let option = document.createElement("option");
+                        option.value = trackNo;
+                        option.textContent = trackNo;
+                        trackNoDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching track numbers:', error));
+        }
+    }
+    function fetchTableData() {
+        let trackNo = document.getElementById("selectedTrackNo").value;
+        let tableHead = document.getElementById("tableHead");
+        let tableBody = document.getElementById("tableBody");
+
+        tableHead.innerHTML = ""; 
+        tableBody.innerHTML = ""; 
+
+        if (trackNo) {
+            fetch(`/TechnicalAssistantView/GetTableDataOne?trackNo=${encodeURIComponent(trackNo)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Table Data Received:", data);
+
+                    if (data.length === 0) {
+                        alert("No data found for this Track No.");
+                        return;
+                    }
+
+                    // Table header row
+                    let headerRow = tableHead;
+
+                    // All column names from the first data object
+                    let columns = Object.keys(data[0]).filter(column => column.toLowerCase() !== "id");
+
+                    // Create individual header cells (excluding ID)
+                    columns.forEach(column => {
+                        let th = document.createElement("th");
+                        th.textContent = column;
+                        th.style.padding = "10px";
+                        headerRow.appendChild(th);
+                    });
+
+                    // Create table rows for each data item
+                    data.forEach(row => {
+                        let tr = document.createElement("tr");
+
+                        // Add each column value as a cell (excluding ID)
+                        columns.forEach(column => {
+                            let td = document.createElement("td");
+                            td.textContent = row[column] !== null ? row[column] : '';
+                            td.style.padding = "8px";
+                            tr.appendChild(td);
+                        });
+
+                        tableBody.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Error fetching table data:', error));
+        }
+    }
+</script>

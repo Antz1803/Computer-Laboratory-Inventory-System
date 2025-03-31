@@ -1,0 +1,37 @@
+﻿@model DNTS_CLIS.Models.Laboratories
+
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+    ViewData["Title"] = "Laboratory Details";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Laboratory Details</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered border-dark">
+                        <tbody>
+                            <tr>
+                                <th class="bg-light text-start" width="40%">Laboratory Name:</th>
+                                <td class="text-start">@Html.DisplayFor(model => model.LaboratoryName)</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light text-start">Created Date:</th>
+                                <td class="text-start">@Html.DisplayFor(model => model.CreatedDate)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Edit</a>
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

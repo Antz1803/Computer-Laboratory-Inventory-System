@@ -1,0 +1,321 @@
+﻿<style>
+    .table td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    .serial-number-column {
+        max-width: 250px;
+    }
+</style>
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+    ViewData["Title"] = "Deployment Form";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0">Deployment Form</h2>
+                </div>
+                <div class="card-body">
+                    <form id="deploymentForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Requested By:</label>
+                                <input type="text" class="form-control" name="RequestedBy">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">To:</label>
+                                <input type="text" class="form-control" name="To">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">From:</label>
+                                <input type="text" class="form-control" name="From">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Purpose:</label>
+                                <input type="text" class="form-control" name="Purpose">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Date:</label>
+                            <input type="date" class="form-control" name="Date">
+                        </div>
+
+                        <h5 class="mt-4 text-primary">Select Laboratory and CTN</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Laboratory:</label>
+                                <select class="form-control" id="laboratoryDropdown">
+                                    <option value="">-- Select Laboratory --</option>
+                                    @if (ViewBag.Laboratories != null)
+                                    {
+                                        foreach (var lab in ViewBag.Laboratories)
+                                        {
+                                            <option value="@lab.LaboratoryName">@lab.LaboratoryName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">CTN:</label>
+                                <select class="form-control" id="ctnDropdown" disabled>
+                                    <option value="">-- Select CTN --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h5 class="mt-4 text-primary">Available Equipment</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th>Particulars</th>
+                                        <th>Brand/Model</th>
+                                        <th>Qty</th>
+                                        <th>Serial/Control Number</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipmentTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center">No equipment found.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm mb-3">Add All Items</button>
+
+                        <h5 class="mt-4 text-primary">Equipment Details</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>Particulars</th>
+                                        <th>Brand/Model</th>
+                                        <th>Qty</th>
+                                        <th>Serial/Control Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipmentDetailsTableBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center">No equipment added.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h5 class="mt-4 text-primary">Policies</h5>
+                 
+                            <li>The borrower is responsible for any damages or loss.</li>
+                            <li>Equipment should be used for its intended purpose.</li>
+                            <li>Must be returned within the agreed period.</li>
+                            <li>Report any issues to the responsible team.</li>
+                            <br />
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Released by:</label>
+                                <input type="text" class="form-control" name="ReleasedBy">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Received by:</label>
+                                <input type="text" class="form-control" name="ReceivedBy">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <a asp-action="TAHistoryDeployment" class="btn btn-secondary">View History</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function () {
+    $('#laboratoryDropdown').change(function () {
+        var labName = $(this).val();
+        $('#ctnDropdown').prop('disabled', true).html('<option value="">-- Select CTN --</option>');
+        $('#equipmentTableBody').html('<tr><td colspan="5" class="text-center">No equipment found.</td></tr>');
+
+        if (labName) {
+            $.get('/TADeployment/GetCTNsByAssignedLaboratory', { laboratoryName: labName }, function (response) {
+                if (response.success) {
+                    var options = '<option value="">-- Select CTN --</option>';
+                    response.data.forEach(function (ctn) {
+                        options += `<option value="${ctn}">${ctn}</option>`;
+                    });
+                    $('#ctnDropdown').html(options).prop('disabled', false);
+                } else {
+                    alert(response.message);
+                }
+            });
+        }
+    });
+    $('#ctnDropdown').change(function () {
+        var ctn = $(this).val();
+        var labName = $('#laboratoryDropdown').val();
+
+        $('#equipmentTableBody').html('<tr><td colspan="5" class="text-center">Loading...</td></tr>');
+
+        if (ctn && labName) {
+            console.log("Fetching equipment for CTN:", ctn, "Laboratory:", labName);
+
+            $.get('/TADeployment/GetEquipmentDetails', { ctn: ctn, laboratoryName: labName })
+                .done(function (response) {
+                    console.log("Response:", response); // Log the response
+
+                    $('#equipmentTableBody').empty();
+
+                    if (response.success && response.data && response.data.length > 0) {
+                        var rows = response.data.map(item => `
+                            <tr>
+                                <td>${item.particular || 'N/A'}</td>
+                                <td>${item.brand || 'N/A'}</td>
+                                <td>1</td>
+                                <td>${item.serialStickerNumber || 'N/A'}</td>
+                                   <td><button type="button" class="btn btn-primary btn-sm add-item">Add</button></td>
+                            </tr>`).join('');
+
+                        $('#equipmentTableBody').html(rows);
+                    } else {
+                        $('#equipmentTableBody').html('<tr><td colspan="5" class="text-center">No equipment found.</td></tr>');
+                    }
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX error:", textStatus, errorThrown);
+                    $('#equipmentTableBody').html('<tr><td colspan="5" class="text-center">Error loading data.</td></tr>');
+                });
+        } else {
+            $('#equipmentTableBody').html('<tr><td colspan="5" class="text-center">Please select a CTN and Laboratory.</td></tr>');
+        }
+    });
+
+    // Prevent duplicate items from being added
+    $(document).on('click', '.add-item', function () {
+        var row = $(this).closest('tr');
+        var serialNumber = row.find('td:nth-child(4)').text();
+
+        // Check if Serial Number already exists
+        var exists = $('#equipmentDetailsTableBody tr').filter(function () {
+            return $(this).find('td:nth-child(4)').text() === serialNumber;
+        }).length > 0;
+
+        if (!exists) {
+            var newRow = row.clone();
+            newRow.find('.add-item').remove(); // Remove Add button
+            $('#equipmentDetailsTableBody').append(newRow);
+            $('#equipmentDetailsTableBody tr:first:contains("No equipment added.")').remove(); // Remove placeholder
+        } else {
+            alert("This equipment is already added.");
+        }
+    });
+});
+      $('.add-all-item').click(function() {
+        // First, clear any "No equipment added" placeholder row
+        $('#equipmentDetailsTableBody tr:contains("No equipment added.")').remove();
+
+        // Process each row in the equipment table
+        $('#equipmentTableBody tr').each(function() {
+            var row = $(this);
+            var cols = row.find('td');
+
+            // Skip placeholder rows or rows with no actual data
+            if (cols.length < 4 || cols.eq(0).text().includes('No equipment') ||
+                cols.eq(0).text().includes('Loading...')) {
+                return true; // Continue to next iteration
+            }
+
+            var serialNumber = cols.eq(3).text().trim();
+
+            // Check if this item already exists in the details table
+            var exists = $('#equipmentDetailsTableBody tr').filter(function() {
+                return $(this).find('td:nth-child(4)').text().trim() === serialNumber;
+            }).length > 0;
+
+            // Only add if it doesn't already exist
+            if (!exists) {
+                // Create a new row with just the first 4 columns
+                var newRow = $('<tr>');
+                newRow.append('<td>' + cols.eq(0).text() + '</td>');
+                newRow.append('<td>' + cols.eq(1).text() + '</td>');
+                newRow.append('<td>' + cols.eq(2).text() + '</td>');
+                newRow.append('<td>' + cols.eq(3).text() + '</td>');
+
+                $('#equipmentDetailsTableBody').append(newRow);
+            }
+        });
+
+        // If no items were added at all, restore the placeholder
+        if ($('#equipmentDetailsTableBody tr').length === 0) {
+            $('#equipmentDetailsTableBody').html('<tr><td colspan="4" class="text-center">No equipment added.</td></tr>');
+        }
+    });
+
+           // Submit
+    $(document).ready(function () {
+        $("#deploymentForm").submit(function (e) {
+            e.preventDefault();
+
+            let deployItems = [];
+            $("#equipmentDetailsTableBody tr").each(function () {
+                let row = $(this).find("td");
+                if (row.length > 0 && !row.eq(0).text().includes("No equipment")) {
+                    deployItems.push({
+                        Particular: row.eq(0).text(),
+                        Brand: row.eq(1).text(),      
+                        Quantity: parseInt(row.eq(2).text()) || 1,
+                        SerialControlNumber: row.eq(3).text()
+                    });
+                }
+            });
+
+            if (deployItems.length === 0) {
+                alert("Please add at least one equipment item.");
+                return;
+            }
+
+            let formData = {
+                RequestedBy: $("input[name='RequestedBy']").val(),
+                To: $("input[name='To']").val(),
+                From: $("input[name='From']").val(),
+                Purpose: $("input[name='Purpose']").val(),
+                Date: $("input[name='Date']").val(),
+                Laboratory: $("#laboratoryDropdown").val(),
+                ReleasedBy: $("input[name='ReleasedBy']").val(),
+                ReceivedBy: $("input[name='ReceivedBy']").val(),
+                DeployItems: deployItems
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "/TADeployment/SubmitDeploymentForm",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    alert(response.message);
+                    if (response.success) location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error details:", xhr.responseText);
+                    alert("Error submitting the form: " + error);
+                }
+            });
+        });
+    });
+    </script>
+
+

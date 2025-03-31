@@ -1,0 +1,81 @@
+﻿@model IEnumerable<DNTS_CLIS.Models.Laboratories>
+
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+    ViewData["Title"] = "Index";
+}
+<p></p>
+<h2 style="color: #002855;" class="fw-bold">Laboratories</h2>
+<p></p>
+<p class="d-flex justify-content-end">
+    <a asp-action="Create" class="btn btn-success">Add New</a>
+</p>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover" style="border-radius: 5px;">
+        <thead style="background-color: #002855; color: white;">
+            <tr>
+                <th class="text-center" style="width: 220px;">Laboratory Name</th>
+                <th class="text-center" style="width: 220px;">Created Date</th>
+                <th class="text-center" style="width: 200px;"></th>
+            </tr>
+        </thead>
+        <tbody style="background-color: #61a5c2; color: #001d3d;">
+            @foreach (var item in Model)
+            {
+                <tr class="table-row">
+                    <td class="p-1 text-center border-white">@Html.DisplayFor(modelItem => item.LaboratoryName)</td>
+                    <td class="p-1 text-center border-white">@Html.DisplayFor(modelItem => item.CreatedDate)</td>
+                    <td class="p-1 text-center border-white">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning text-dark fw-bold">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-dark fw-bold">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger text-dark fw-bold">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .table-bordered th,
+    .table-bordered td {
+        border: 5px solid #004080 !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #468faf !important;
+        color: white !important;
+    }
+
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+</style>
+<!-- Toast Container -->
+<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+    <div id="toastContainer"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var successMessage = '@TempData["SuccessMessage"]';
+        var errorMessage = '@TempData["ErrorMessage"]';
+
+        function showToast(type, message) {
+            var toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body fw-bold">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>`;
+            document.getElementById("toastContainer").innerHTML = toastHtml;
+            setTimeout(() => document.querySelector('.toast').remove(), 6000);
+        }
+
+        if (successMessage) showToast("success", successMessage);
+        if (errorMessage) showToast("danger", errorMessage);
+    });
+</script>

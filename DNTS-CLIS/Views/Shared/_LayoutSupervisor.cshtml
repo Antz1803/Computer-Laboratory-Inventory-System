@@ -1,0 +1,189 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var loggedInUser = HttpContextAccessor.HttpContext.Session.GetString("FullName") ?? "Guest";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DNTS_CLIS</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Clis5.styles.css" asp-append-version="true" />
+    <style>
+        /* Ensure full height layout */
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #a3cef1;
+        }
+
+        /* Header Styling */
+        .custom-header {
+            background: linear-gradient(135deg, #01497c 40%, #00b4d8 100%);
+            clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%);
+            padding: 30px 20px;
+            text-align: center;
+            color: #fff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .label-compact {
+            line-height: -3;
+            margin-top: -7px;
+            font-size: 0.9rem !important;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Adjust spacing between logo and title */
+        }
+
+        .header-logo {
+            height: 120px;
+            width: auto;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* Navigation Bar */
+        .navbar-custom {
+            background: #014f86;
+            padding: 1px 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 5px solid #004080;
+            border-bottom: 5px solid #004080;
+            height: 93px;
+        }
+
+            .navbar-custom a {
+                color: black;
+                text-decoration: none;
+                font-size: 18px;
+                font-weight: 600;
+                padding: 10px 15px;
+            }
+
+                .navbar-custom a:hover {
+                    color: darkgoldenrod !important;
+                }
+
+        /* Main content expands to push footer down */
+        .container {
+            flex: 1;
+        }
+
+        /* Footer Styling */
+        footer {
+            background: #014f86;
+            color: white;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center;
+            border-top: 5px solid #004080;
+            width: 100%;
+            height: 35px; 
+            margin-top: 10px; 
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="custom-header">
+        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Logo">
+        <div class="header-content">
+            <img src="~/Images/Logo.png" alt="DNTS CLIS Logo" class="header-logo" asp-append-version="true" />
+                <h1 class="header-title" style="text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">DNTS COMPUTER LABORATORY INVENTORY SYSTEM</h1>
+        </div>
+        </a>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-custom">
+        <div class="d-flex justify-content-center gap-4">
+            <div class="d-flex flex-column align-items-center">
+                <div class="dropdown text-center">
+                    <a class="nav-link dropdown-toggle text-dark label-compact d-flex flex-column align-items-center custom-dropdown-toggle" href="#" id="fileManagementDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="~/Images/hardware.svg" alt="Hardware Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
+                        <span class="d-flex align-items-center">
+                            <i class="fas fa-caret-down"></i> File Management
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="fileManagementDropdown">
+                        <li><a class="dropdown-item" asp-area="" asp-controller="Laboratories" asp-action="Index">Laboratories</a></li>
+                        <li><a class="dropdown-item" asp-area="" asp-controller="TechnicalAssistantView" asp-action="Index">Hardware Deployment</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column align-items-center">
+                <a class="nav-link text-dark label-compact d-flex flex-column align-items-center text-center" asp-area="" asp-controller="TADeployment" asp-action="Index">
+                    <img src="~/Images/deploy.svg" alt="Deploy Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
+                    Office Deployment
+                </a>
+            </div>
+
+            <div class="d-flex flex-column align-items-center">
+                <a class="nav-link text-dark label-compact d-flex flex-column align-items-center text-center" asp-area="" asp-controller="Users" asp-action="Index">
+                    <img src="~/Images/users.svg" alt="Users Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
+                    Users
+                </a>
+            </div>
+
+            <div class="d-flex flex-column align-items-center">
+                <a class="nav-link text-dark label-compact d-flex flex-column align-items-center text-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/Images/upload.svg" alt="Upload Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
+                    Upload File
+                </a>
+            </div>
+        </div>
+
+        <!-- User Info & Logout -->
+        <div>
+            <span style="color: #00d9ff;">
+                <i class="fas fa-user"></i> @Context.Session.GetString("FullName")
+            </span> |  <span style="color: #fdc500;">
+                <i class="fas fa-user"></i> @Context.Session.GetString("Role")
+            </span> |
+            <a asp-controller="Account" asp-action="Logout"
+               style="color:black; font-size:16px; text-decoration:none;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 DNTS CLIS
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

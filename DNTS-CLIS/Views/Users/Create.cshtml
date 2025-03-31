@@ -1,0 +1,106 @@
+﻿@model DNTS_CLIS.Models.User
+
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>User</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="LastName" class="control-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Select Role:</label>
+                <select asp-for="Role" asp-items="ViewBag.Roles" class="form-control" id="roleDropdown">
+                    <option value="">-- Select Role --</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="labDropdown">
+                <label>Select Laboratory:</label>
+                <select asp-for="AssignLaboratory" class="form-control">
+                    <option value="">-- Select Laboratory --</option>
+                    @foreach (var lab in ViewBag.Laboratories as List<DNTS_CLIS.Models.Laboratories>)
+                    {
+                        <option value="@lab.LaboratoryName">@lab.LaboratoryName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Username" class="control-label"></label>
+                <input asp-for="Username" class="form-control" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <input type="hidden" id="hiddenAssignLaboratory" name="AssignLaboratory" />
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+              $(document).ready(function () {
+            function toggleLaboratoryDropdown() {
+                var selectedRole = $("#roleDropdown").val();
+                if (selectedRole === "Supervisor") {
+                    $("#labDropdown").hide();
+                    $("#AssignLaboratory").val("N/A");
+                    $("#hiddenAssignLaboratory").val("N/A"); 
+                } else {
+                    $("#labDropdown").show();
+                    $("#AssignLaboratory").val("");
+                    $("#hiddenAssignLaboratory").val($("#AssignLaboratory").val());
+                }
+            }
+
+            $("#roleDropdown").change(toggleLaboratoryDropdown);
+            $("#AssignLaboratory").change(function () {
+                $("#hiddenAssignLaboratory").val($(this).val()); 
+            });
+
+            toggleLaboratoryDropdown(); 
+        });
+
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

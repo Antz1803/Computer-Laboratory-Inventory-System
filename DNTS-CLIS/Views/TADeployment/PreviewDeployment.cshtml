@@ -1,0 +1,72 @@
+﻿@model DeploymentPreviewViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0 rounded-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h2 class="mb-0">Deployment Preview</h2>
+        </div>
+        <div class="card-body">
+            
+            <!-- Deployment ID -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Deployment ID:</label>
+                <span class="text-muted">@Model.DeploymentInfos.Id</span>
+            </div>
+
+            <!-- Laboratory Name -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Laboratory:</label>
+                <span class="text-muted">@Model.DeploymentInfos.Laboratory</span>
+            </div>
+
+            <!-- Equipment Table -->
+            <h5 class="mt-4 text-primary">Equipment Details</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Particular</th>
+                            <th>Brand/Model</th>
+                            <th>Quantity</th>
+                            <th>Serial/Control Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.DeployItems.Any())
+                        {
+                            foreach (var item in Model.DeployItems)
+                            {
+                                <tr>
+                                    <td>@item.Particular</td>
+                                    <td>@item.Brand</td>
+                                    <td>@item.Quantity.ToString()</td>
+                                    <td>@item.SerialControlNumber</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No equipment assigned.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Approval Information -->
+            <div class="mt-4">
+                <label class="fw-bold">Released By:</label> <span class="text-muted">@Model.DeploymentInfos.ReleasedBy</span><br>
+                <label class="fw-bold">Received By:</label> <span class="text-muted">@Model.DeploymentInfos.ReceivedBy</span>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="@Url.Action("TAHistoryDeployment", "TADeployment")" class="btn btn-secondary">Back</a>
+            </div>
+        </div>
+    </div>
+</div>

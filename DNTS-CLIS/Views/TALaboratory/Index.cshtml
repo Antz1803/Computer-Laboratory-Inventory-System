@@ -1,0 +1,148 @@
+﻿@{
+    ViewData["Title"] = "Technical Assistant Laboratory";
+}
+
+<h2>Laboratory: @ViewBag.LaboratoryName</h2>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+else if (ViewBag.DataTable != null)
+{
+    <table id="dataTable" class="table table-bordered">
+        <thead>
+            <tr>
+                @foreach (System.Data.DataColumn col in ViewBag.DataTable.Columns)
+                {
+                    if (col.ColumnName != "ID")
+                    {
+                        <th>@col.ColumnName</th>
+                    }
+                }
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (System.Data.DataRow row in ViewBag.DataTable.Rows)
+            {
+                <tr>
+                    @for (int i = 0; i < ViewBag.DataTable.Columns.Count; i++)
+                    {
+                        if (ViewBag.DataTable.Columns[i].ColumnName != "ID")
+                        {
+                            <td data-column="@ViewBag.DataTable.Columns[i].ColumnName">@row[i]</td>
+                        }
+                    }
+                    <td>
+                        <button class="btn btn-warning edit-btn" data-id="@row["ID"]" data-trackno="@ViewBag.TableName">Edit</button>
+                        <button class="btn btn-danger delete-btn" data-id="@row["ID"]" data-trackno="@ViewBag.TableName">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No data available for this laboratory.</p>
+}
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editRowId">
+                <input type="hidden" id="editTrackNo">
+                <div id="editFields"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="saveEdit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Open Edit Modal & Populate Data
+        $(".edit-btn").click(function () {
+            var row = $(this).closest("tr");
+            var rowId = $(this).data("id");
+            var trackNo = $(this).data("trackno");
+
+            $("#editRowId").val(rowId);
+            $("#editTrackNo").val(trackNo);
+            $("#editFields").empty();
+
+            row.find("td").each(function (index) {
+                var columnName = $("#dataTable thead tr th").eq(index).text().trim();
+                if (columnName && columnName !== "Actions") {
+                    var cellValue = $(this).text().trim();
+                    var inputField = `
+                        <div class="mb-3">
+                            <label class="form-label">${columnName}</label>
+                            <input type="text" class="form-control edit-input" name="${columnName}" value="${cellValue}">
+                        </div>`;
+                    $("#editFields").append(inputField);
+                }
+            });
+
+            $("#editModal").modal("show");
+        });
+
+        // Save Edited Data
+        $("#saveEdit").click(function () {
+            var rowId = $("#editRowId").val();
+            var trackNo = $("#editTrackNo").val();
+            var updatedValues = {};
+
+            $(".edit-input").each(function () {
+                updatedValues[$(this).attr("name")] = $(this).val();
+            });
+
+            $.ajax({
+                url: "/TALaboratory/UpdateRow",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ trackNo: trackNo, rowId: rowId, updatedValues: updatedValues }),
+                success: function (response) {
+                    alert(response.success ? "Row updated successfully!" : "Error: " + response.message);
+                    location.reload();
+                },
+                error: function () {
+                    alert("An error occurred while updating.");
+                }
+            });
+        });
+
+        // Delete Row
+        $(".delete-btn").click(function () {
+            if (!confirm("Are you sure you want to delete this row?")) return;
+
+            var rowId = $(this).data("id");
+            var trackNo = $(this).data("trackno");
+
+            $.ajax({
+                url: "/TALaboratory/DeleteRow",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ trackNo: trackNo, rowId: rowId }),
+                success: function (response) {
+                    alert(response.success ? "Row deleted successfully!" : "Error: " + response.message);
+                    location.reload();
+                },
+                error: function () {
+                    alert("An error occurred while deleting.");
+                }
+            });
+        });
+    });
+</script>

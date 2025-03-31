@@ -1,0 +1,67 @@
+﻿@model List<DeploymentInfo>
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0 rounded-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h2 class="mb-0">Deployment History</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead style="background-color:#0096c7;">
+                        <tr>
+                            <th>Requested By</th>
+                            <th>To</th>
+                            <th>From</th>
+                            <th>Purpose</th>
+                            <th>Date</th>
+                            <th style="width: 150px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.RequestedBy</td>
+                                    <td>@item.To</td>
+                                    <td>@item.From</td>
+                                    <td>@item.Purpose</td>
+                                    <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        <a href="@Url.Action("PreviewDeployment", "TADeployment", new { id = item.Id })" class="btn btn-info btn-sm">Preview</a>
+                                        <a href="@Url.Action("DeleteDeployment", "TADeployment", new { id = item.Id })" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No deployment history available.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-4">
+                <a href="@Url.Action("TAHistoryDeployment", "TADeployment")" class="btn btn-secondary">Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .table-bordered {
+        border: 2px solid black;
+    }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 2px solid black !important;
+        }
+
+</style>
