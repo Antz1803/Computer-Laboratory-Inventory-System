@@ -25,79 +25,133 @@
         }
 
         /* Header Styling */
-        .custom-header {
-            background: linear-gradient(135deg, #01497c 40%, #00b4d8 100%);
-            clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%);
-            padding: 30px 20px;
-            text-align: center;
-            color: #fff;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    .custom-header,
+.custom-header * {
+    box-sizing: border-box;
+}
+
+.custom-header {
+    position: relative;
+    height: 240px;
+}
+
+        .rectangle-background {
+            background: #027bce;
+            border-left: 3px solid #074c71;
+            border-right: none;
+            border-bottom: 3px solid #074c71;
+            border-top: none; 
+            height: 56px;
+            position: absolute;
+            top: 28px;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            clip-path: polygon(0 0, 100% 0, 98% 100%, 0 100%);
         }
 
-        .label-compact {
-            line-height: -3;
-            margin-top: -7px;
-            font-size: 0.9rem !important;
-        }
 
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 15px; /* Adjust spacing between logo and title */
-        }
+.vector-1 {
+    width: 330px;
+    height: 143px;
+    position: absolute;
+    left: -50px;
+    top: 0;
+    overflow: visible;
+}
 
-        .header-logo {
-            height: 120px;
-            width: auto;
+        .Logo {
+            width: 145px;
+            height: 115px;
+            position: absolute;
+            left: -19px;
+            top: 4px;
+            object-fit: cover;
+            aspect-ratio: 229/225;
         }
+.computer-laboratory-inventory-system {
+    color: #ffffff;
+    font-family: "Inter-Bold", sans-serif;
+    font-weight: 700;
+    position: absolute;
+    top: 33px;
+    width: 100%;
+    text-align: center;
+}
 
-        .header-title {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        /* Navigation Bar */
         .navbar-custom {
-            background: #014f86;
-            padding: 1px 1px;
+            background-color: #027bce;
+            padding: 0.5rem 1rem;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            border-top: 5px solid #004080;
-            border-bottom: 5px solid #004080;
-            height: 93px;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 1200px;
+            top: -152px;
+            left: 125px;
+            height: 40px;
+            border-radius: 10px;
+            border-bottom: 2px solid #074c71;
+            flex-wrap: nowrap;
         }
 
-            .navbar-custom a {
-                color: black;
-                text-decoration: none;
-                font-size: 18px;
+            .navbar-custom .nav-link {
+                color: white !important;
                 font-weight: 600;
-                padding: 10px 15px;
+                display: flex;
+                align-items: center;
+ 
+                transition: all 0.3s ease;
+                text-decoration: none;
             }
 
-                .navbar-custom a:hover {
-                    color: darkgoldenrod !important;
+                .navbar-custom .nav-link:hover {
+                    color: #fdc500 !important;
+                    text-decoration: none;
                 }
+
+        .Home-Icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-link:hover .Home-Icon {
+            transform: scale(1.1);
+        }
+
+        .custom-dropdown-toggle::after {
+            display: none;
+        }
+
+
+        .dropdown-menu {
+            background-color: #ffffff;
+            border: 1px solid #074c71;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e9f5ff;
+        }
+
 
         /* Main content expands to push footer down */
         .container {
-            flex: 1;
+            flex:1;
+            position:relative;
+            top:-60px;
         }
 
         /* Footer Styling */
         footer {
-            background: #014f86;
+            background: #027bce;
             color: white;
             display: flex; 
             justify-content: center; 
             align-items: center; 
             text-align: center;
-            border-top: 5px solid #004080;
+            border-top: 3px solid #004080;
             width: 100%;
             height: 35px; 
             margin-top: 10px; 
@@ -106,73 +160,80 @@
     </style>
 </head>
 <body>
+    <div class="container-fluid">
     <!-- Header -->
     <div class="custom-header">
-        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Logo">
-        <div class="header-content">
-            <img src="~/Images/Logo.png" alt="DNTS CLIS Logo" class="header-logo" asp-append-version="true" />
-                <h1 class="header-title" style="text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">DNTS COMPUTER LABORATORY INVENTORY SYSTEM</h1>
-        </div>
-        </a>
-    </div>
-
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-custom">
-        <div class="d-flex justify-content-center gap-4">
-            <div class="d-flex flex-column align-items-center">
-                <div class="dropdown text-center">
-                    <a class="nav-link dropdown-toggle text-dark label-compact d-flex flex-column align-items-center custom-dropdown-toggle" href="#" id="fileManagementDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="~/Images/hardware.svg" alt="Hardware Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
-                        <span class="d-flex align-items-center">
-                            <i class="fas fa-caret-down"></i> File Management
-                        </span>
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="fileManagementDropdown">
-                        <li><a class="dropdown-item" asp-area="" asp-controller="Laboratories" asp-action="Index">Laboratories</a></li>
-                        <li><a class="dropdown-item" asp-area="" asp-controller="TechnicalAssistantView" asp-action="Index">Hardware Deployment</a></li>
-                    </ul>
+        <div class="row">
+            <div class="col-12">
+                <div class="rectangle-background"></div>
+                <img class="vector-1 img-fluid" src="~/Images/vector-1.svg" />
+                <div class="computer-laboratory-inventory-system fs-2 fs-md-3 fs-lg-1">
+                    COMPUTER LABORATORY INVENTORY SYSTEM
                 </div>
-            </div>
-
-            <div class="d-flex flex-column align-items-center">
-                <a class="nav-link text-dark label-compact d-flex flex-column align-items-center text-center" asp-area="" asp-controller="TADeployment" asp-action="Index">
-                    <img src="~/Images/deploy.svg" alt="Deploy Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
-                    Office Deployment
+                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Logo">
+                <img class="Logo" src="~/Images/dnts.png" />
                 </a>
             </div>
-
-            <div class="d-flex flex-column align-items-center">
-                <a class="nav-link text-dark label-compact d-flex flex-column align-items-center text-center" asp-area="" asp-controller="Users" asp-action="Index">
-                    <img src="~/Images/users.svg" alt="Users Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
-                    Users
+        </div>
+    </div>
+    <!-- Horizontal Navigation Bar -->
+    <nav class="navbar navbar-custom justify-content-between flex-wrap">
+        <div class="d-flex flex-wrap align-items-center ">
+            <!-- File Management Dropdown -->
+            <div class="dropdown d-flex align-items-center" style="top:-8px;">
+                <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2 custom-dropdown-toggle"
+                   href="#" id="fileManagementDropdown" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="~/Images/hardware.svg" alt="Hardware Icon" class="Home-Icon" width="30" height="30" />
+                    <span>File Management</span>
                 </a>
+                <ul class="dropdown-menu" aria-labelledby="fileManagementDropdown">
+                    <li><a class="dropdown-item" asp-area="" asp-controller="Laboratories" asp-action="Index">Laboratories</a></li>
+                    <li><a class="dropdown-item" asp-area="" asp-controller="TechnicalAssistantView" asp-action="Index">Hardware Deployment</a></li>
+                </ul>
             </div>
 
-            <div class="d-flex flex-column align-items-center">
-                <a class="nav-link text-dark label-compact d-flex flex-column align-items-center text-center" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/Images/upload.svg" alt="Upload Icon" class="Home-Icon" asp-append-version="true" width="50" height="50" />
-                    Upload File
-                </a>
-            </div>
+            <!-- Office Deployment -->
+            <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
+               asp-area="" asp-controller="TADeployment" asp-action="Index">
+                <img src="~/Images/deploy.svg" alt="Deploy Icon" class="Home-Icon" width="30" height="30" />
+                <span>Office Deployment</span>
+            </a>
+
+            <!-- Users -->
+            <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
+               asp-area="" asp-controller="Users" asp-action="Index">
+                <img src="~/Images/users.svg" alt="Users Icon" class="Home-Icon" width="30" height="30" />
+                <span>Users</span>
+            </a>
+
+            <!-- Upload File -->
+            <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
+               asp-area="" asp-controller="Home" asp-action="Index">
+                <img src="~/Images/upload.svg" alt="Upload Icon" class="Home-Icon" width="30" height="30" />
+                <span>Upload File</span>
+            </a>
         </div>
 
         <!-- User Info & Logout -->
-        <div>
-            <span style="color: #00d9ff;">
+        <div class="d-flex align-items-center gap-2 text-white" style="top:-8px; position: relative;">
+            <span>
                 <i class="fas fa-user"></i> @Context.Session.GetString("FullName")
-            </span> |  <span style="color: #fdc500;">
-                <i class="fas fa-user"></i> @Context.Session.GetString("Role")
-            </span> |
+            </span>/
+            <span style="color: #fdc500;">
+                <i class="fas fa-user-tag"></i> @Context.Session.GetString("Role")
+            </span>/
             <a asp-controller="Account" asp-action="Logout"
-               style="color:black; font-size:16px; text-decoration:none;">
+               style="color: white; font-size: 16px; text-decoration: none;">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
         </div>
     </nav>
+    </div>
 
     <!-- Main Content -->
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-1">
             @RenderBody()
         </main>
     </div>
