@@ -1,4 +1,5 @@
 ﻿@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
     ViewData["Title"] = "Preview Records";
     var functionalRecords = ViewBag.FunctionalRecords as System.Data.DataTable;
     var defectiveRecords = ViewBag.DefectiveRecords as System.Data.DataTable;
@@ -8,6 +9,57 @@
     bool hasStatusColumn = (functionalRecords?.Columns.Contains("STATUS") == true) ||
                            (defectiveRecords?.Columns.Contains("STATUS") == true);
 }
+<style>
+    .preview-card {
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin: -40px auto;
+        padding: 30px;
+        max-width: 1200px;
+    }
+
+    .preview-header {
+        background-color: #007bff;
+        color: white;
+        padding: 10px -1px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        font-size: 1.8rem;
+        font-weight: bold;
+        text-align: center;
+        margin: -30px -30px 30px -30px;
+    }
+
+    .sub-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 0.875rem;
+    }
+
+    .table thead th{
+        border-color: #d1e7dd;
+        border-bottom: 1px solid black;
+    }
+
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .btn-action-group {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+    }
+</style>
+
 
 @{
     string? dateOfAcquisitionValue = "";
@@ -27,117 +79,112 @@
     }
 }
 
-<h2 class="text-center mb-4">Preview Records</h2>
-<h3 class="text-center mb-4">Date of Acquisition: @dateOfAcquisitionValue</h3>
-<h4 class="text-center text-primary">Data from Table: @ViewBag.TableName</h4>
+<div class="preview-card">
+    <div class="preview-header">PREVIEW RECORDS</div>
+    <div class="sub-header">Date of Acquisition: @dateOfAcquisitionValue</div>
+    <div class="sub-header text-primary">Data from Table: @ViewBag.TableName</div>
 
-@* Records Section *@
-<div class="container">
-    @foreach (var recordSet in new[] {
-    ("Functional Records", functionalRecords, "success"),
-    ("Defective Records", defectiveRecords, "danger")
-    })
-    {
-        <div class="mt-5">
-            <h4 class="text-@recordSet.Item3">@recordSet.Item1</h4>
-            @if (recordSet.Item2 != null && recordSet.Item2.Rows.Count > 0)
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-@recordSet.Item3">
-                            <tr>
-                                @foreach (System.Data.DataColumn col in recordSet.Item2.Columns)
-                                {
-                                    if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
+    <div class="container">
+        @foreach (var recordSet in new[] {
+        ("Functional Records", functionalRecords, "success"),
+        ("Defective Records", defectiveRecords, "danger")
+        })
+        {
+            <div class="mt-5">
+                <h4 class="text-@recordSet.Item3">@recordSet.Item1</h4>
+                @if (recordSet.Item2 != null && recordSet.Item2.Rows.Count > 0)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-@recordSet.Item3">
+                                <tr>
+                                    @foreach (System.Data.DataColumn col in recordSet.Item2.Columns)
                                     {
-                                        <th>@col.ColumnName</th>
+                                        if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
+                                        {
+                                            <th>@col.ColumnName</th>
+                                        }
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (System.Data.DataRow row in recordSet.Item2.Rows)
+                                {
+                                    bool isEmptyRow = row.ItemArray.All(value => string.IsNullOrWhiteSpace(value?.ToString()));
+                                    if (!isEmptyRow)
+                                    {
+                                        <tr>
+                                            @foreach (System.Data.DataColumn col in recordSet.Item2.Columns)
+                                            {
+                                                if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
+                                                {
+                                                    <td>@row[col]</td>
+                                                }
+                                            }
+                                        </tr>
                                     }
                                 }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (System.Data.DataRow row in recordSet.Item2.Rows)
-                            {
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No @recordSet.Item1.ToLower() found.</p>
+                }
+            </div>
+        }
 
-                                @* Check if all row values are empty *@
-                                bool isEmptyRow = row.ItemArray.All(value => string.IsNullOrWhiteSpace(value?.ToString()));
-
-                                if (!isEmptyRow)  @* Only render non-empty rows *@
-                                {
-                                    <tr>
-                                        @foreach (System.Data.DataColumn col in recordSet.Item2.Columns)
-                                        {
-                                            if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
-                                            {
-                                                <td>@row[col]</td>
-                                            }
-                                        }
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <p class="text-muted">No @recordSet.Item1.ToLower() found.</p>
-            }
-        </div>
-    }
-
-    @* Unknown Status Records *@
-    @if (!hasStatusColumn) @* Only show if "Status" column doesn't exist *@
-    {
-        <div class="mt-5">
-            <h4 class="text-warning">Unknown Status Records</h4>
-            @if (unknownRecords != null && unknownRecords.Rows.Count > 0)
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-warning">
-                            <tr>
-                                @foreach (System.Data.DataColumn col in unknownRecords.Columns)
-                                {
-                                    if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
+        @if (!hasStatusColumn)
+        {
+            <div class="mt-5">
+                <h4 class="text-warning">Unknown Status Records</h4>
+                @if (unknownRecords != null && unknownRecords.Rows.Count > 0)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-warning">
+                                <tr>
+                                    @foreach (System.Data.DataColumn col in unknownRecords.Columns)
                                     {
-                                        <th>@col.ColumnName</th>
+                                        if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
+                                        {
+                                            <th>@col.ColumnName</th>
+                                        }
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (System.Data.DataRow row in unknownRecords.Rows)
+                                {
+                                    bool isEmptyRow = row.ItemArray.All(value => string.IsNullOrWhiteSpace(value?.ToString()));
+                                    if (!isEmptyRow)
+                                    {
+                                        <tr>
+                                            @foreach (System.Data.DataColumn col in unknownRecords.Columns)
+                                            {
+                                                if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
+                                                {
+                                                    <td>@row[col]</td>
+                                                }
+                                            }
+                                        </tr>
                                     }
                                 }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (System.Data.DataRow row in unknownRecords.Rows)
-                            {                              
-                                @* Check if all row values are empty *@
-                                bool isEmptyRow = row.ItemArray.All(value => string.IsNullOrWhiteSpace(value?.ToString()));
-
-                                if (!isEmptyRow)  @* Only render non-empty rows *@
-                                {
-                                    <tr>
-                                        @foreach (System.Data.DataColumn col in unknownRecords.Columns)
-                                        {
-                                            if (col.ColumnName != "ID" && col.ColumnName != "DateofAcquisition")
-                                            {
-                                                <td>@row[col]</td>
-                                            }
-                                        }
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <p class="text-muted">No unknown status records found.</p>
-            }
-        </div>
-    }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No unknown status records found.</p>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 @* Back Button  *@
 <div class="d-flex justify-content-center mt-4">
-    <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Back to Home</a>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to Upload</a>
 </div>

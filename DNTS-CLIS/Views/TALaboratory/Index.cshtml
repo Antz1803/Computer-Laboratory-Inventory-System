@@ -4,145 +4,321 @@
 
 <h2>Laboratory: @ViewBag.LaboratoryName</h2>
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
-else if (ViewBag.DataTable != null)
-{
-    <table id="dataTable" class="table table-bordered">
-        <thead>
-            <tr>
-                @foreach (System.Data.DataColumn col in ViewBag.DataTable.Columns)
-                {
-                    if (col.ColumnName != "ID")
-                    {
-                        <th>@col.ColumnName</th>
-                    }
-                }
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (System.Data.DataRow row in ViewBag.DataTable.Rows)
-            {
-                <tr>
-                    @for (int i = 0; i < ViewBag.DataTable.Columns.Count; i++)
-                    {
-                        if (ViewBag.DataTable.Columns[i].ColumnName != "ID")
-                        {
-                            <td data-column="@ViewBag.DataTable.Columns[i].ColumnName">@row[i]</td>
-                        }
-                    }
-                    <td>
-                        <button class="btn btn-warning edit-btn" data-id="@row["ID"]" data-trackno="@ViewBag.TableName">Edit</button>
-                        <button class="btn btn-danger delete-btn" data-id="@row["ID"]" data-trackno="@ViewBag.TableName">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No data available for this laboratory.</p>
-}
+<!-- TrackNo Dropdown -->
+<div class="form-group">
+    <label for="selectedTrackNo">Select Track No:</label>
+    <select id="selectedTrackNo" class="form-control" onchange="fetchTableData()">
+        <option value="">-- Select Track No --</option>
+        @foreach (var trackNo in ViewBag.TrackNos)
+        {
+            <option value="@trackNo">@trackNo</option>
+        }
+    </select>
+</div>
 
-<!-- Edit Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Edit Record</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Table to display data -->
+<div class="mt-4">
+    <h4 class="mb-3">Track Details</h4>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered text-center" id="trackTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+<!-- Modal for Editing Details -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content shadow-lg rounded">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Edit Item Details
+                </h5>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="editRowId">
-                <input type="hidden" id="editTrackNo">
-                <div id="editFields"></div>
+                <form id="editForm">
+                    <input type="hidden" id="editId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="editCTN">CTN:</label>
+                            <input type="text" id="editCTN" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editParticular">Particular:</label>
+                            <input type="text" id="editParticular" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="editBrand">Brand:</label>
+                            <input type="text" id="editBrand" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editSerialStickerNumber">Serial Sticker Number:</label>
+                            <input type="text" id="editSerialStickerNumber" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="editStatus">Status:</label>
+                            <input type="text" id="editStatus" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editLocation">Location:</label>
+                            <input type="text" id="editLocation" class="form-control">
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" id="saveEdit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" onclick="$('#editModal').modal('hide');">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-success" id="saveEditBtn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<!-- Modal for Repair Details -->
+<div class="modal fade" id="repairModal" tabindex="-1" role="dialog" aria-labelledby="repairModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content shadow-lg rounded">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="repairModalLabel">
+                    <i class="fas fa-tools"></i> Repair Details
+                </h5>
+            </div>
+            <div class="modal-body p-4">
+                <form id="repairForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="id">ID:</label>
+                            <input type="text" id="id" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ctn">CTN:</label>
+                            <input type="text" id="ctn" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="particular">Particular:</label>
+                            <input type="text" id="particular" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="brand">Brand:</label>
+                            <input type="text" id="brand" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="serialStickerNumber">Serial Sticker Number:</label>
+                            <input type="text" id="serialStickerNumber" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status">Status:</label>
+                            <input type="text" id="status" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="location">Location:</label>
+                            <input type="text" id="location" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dateOfAcquisition">Date of Acquisition:</label>
+                            <input type="text" id="dateOfAcquisition" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <label for="description">Description of Damage:</label>
+                        <textarea id="description" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" onclick="$('#repairModal').modal('hide');">
+                    <i class="fas fa-times"></i> Close
+                </button>
+
+                <button type="button" class="btn btn-success" id="saveRepairBtn">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    $(document).ready(function () {
-        // Open Edit Modal & Populate Data
-        $(".edit-btn").click(function () {
-            var row = $(this).closest("tr");
-            var rowId = $(this).data("id");
-            var trackNo = $(this).data("trackno");
+    function fetchTableData() {
+        let trackNo = document.getElementById("selectedTrackNo").value;
+        let tableHead = document.getElementById("tableHead");
+        let tableBody = document.getElementById("tableBody");
 
-            $("#editRowId").val(rowId);
-            $("#editTrackNo").val(trackNo);
-            $("#editFields").empty();
+        tableHead.innerHTML = "";
+        tableBody.innerHTML = "";
 
-            row.find("td").each(function (index) {
-                var columnName = $("#dataTable thead tr th").eq(index).text().trim();
-                if (columnName && columnName !== "Actions") {
-                    var cellValue = $(this).text().trim();
-                    var inputField = `
-                        <div class="mb-3">
-                            <label class="form-label">${columnName}</label>
-                            <input type="text" class="form-control edit-input" name="${columnName}" value="${cellValue}">
-                        </div>`;
-                    $("#editFields").append(inputField);
-                }
-            });
+        if (trackNo) {
+            fetch(`/TALaboratory/GetTableDataOne?trackNo=${encodeURIComponent(trackNo)}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Table header row
+                    let headerRow = tableHead;
 
-            $("#editModal").modal("show");
+                    // All column names from the first data object
+                    let columns = Object.keys(data[0]).filter(column => column.toLowerCase() !== "id");
+
+                    // Create individual header cells (excluding ID)
+                    columns.forEach(column => {
+                        let th = document.createElement("th");
+                        th.textContent = column;
+                        th.style.padding = "10px";
+                        headerRow.appendChild(th);
+                    });
+
+                    // Create table rows for each data item
+                    data.forEach(row => {
+                        let tr = document.createElement("tr");
+
+                        // Add each column value as a cell (excluding ID)
+                        columns.forEach(column => {
+                            let td = document.createElement("td");
+                            td.textContent = row[column] !== null ? row[column] : '';
+                            td.style.padding = "8px";
+                            tr.appendChild(td);
+                        });
+
+                        // Actions
+                        let actionsTd = document.createElement("td");
+                        let repairBtn = document.createElement("button");
+                        repairBtn.textContent = "Repair";
+                        repairBtn.classList.add("btn", "btn-warning");
+                        repairBtn.onclick = function() {
+                            repairItem(row);
+                        };
+
+                        let editBtn = document.createElement("button");
+                        editBtn.textContent = "Edit";
+                        editBtn.classList.add("btn", "btn-secondary");
+                        editBtn.onclick = function() {
+                            editItem(row);
+                        };
+
+                        actionsTd.appendChild(repairBtn);
+                        actionsTd.appendChild(editBtn);
+
+                        tr.appendChild(actionsTd);
+
+                        tableBody.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Error fetching table data:', error));
+        }
+    }
+
+    function repairItem(row) {
+        document.getElementById("id").value = row.ID;
+        document.getElementById("ctn").value = row.CTN;
+        document.getElementById("particular").value = row.Particular;
+        document.getElementById("brand").value = row.Brand;
+        document.getElementById("serialStickerNumber").value = row.SerialStickerNumber;
+        document.getElementById("status").value = row.STATUS;
+        document.getElementById("location").value = row.LOCATION;
+        document.getElementById("dateOfAcquisition").value = row.DATEOFACQUISITION;
+
+        $("#repairModal").modal("show");
+
+        document.getElementById("saveRepairBtn").onclick = function() {
+            let description = document.getElementById("description").value;
+            if (description) {
+                // Send request to server to update the item
+                fetch(`/TALaboratory/RepairItem?trackNo=${row.TrackNo}&id=${row.ID}&description=${encodeURIComponent(description)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log("Repair item response:", data);
+                        alert("Item marked for repair.");
+                        $("#repairModal").modal("hide");
+                    })
+                    .catch(error => console.error('Error repairing item:', error));
+            }
+        };
+    }
+
+    function editItem(row) {
+        let data = {};
+        let columns = Object.keys(row).filter(column => column.toLowerCase() !== "id");
+
+        columns.forEach(column => {
+            let value = prompt(`Enter new value for ${column}:`);
+            if (value) {
+                data[column] = value;
+            }
         });
 
-        // Save Edited Data
-        $("#saveEdit").click(function () {
-            var rowId = $("#editRowId").val();
-            var trackNo = $("#editTrackNo").val();
-            var updatedValues = {};
-
-            $(".edit-input").each(function () {
-                updatedValues[$(this).attr("name")] = $(this).val();
-            });
-
-            $.ajax({
-                url: "/TALaboratory/UpdateRow",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ trackNo: trackNo, rowId: rowId, updatedValues: updatedValues }),
-                success: function (response) {
-                    alert(response.success ? "Row updated successfully!" : "Error: " + response.message);
-                    location.reload();
+        if (Object.keys(data).length > 0) {
+            fetch(`/TALaboratory/EditItem?trackNo=${row.TrackNo}&id=${row.ID}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                error: function () {
-                    alert("An error occurred while updating.");
-                }
-            });
-        });
+                body: JSON.stringify(data)
+            })
+                .then(response => response.text())
+                .then(data => {
+                    console.log("Edit item response:", data);
+                    alert("Item updated.");
+                })
+                .catch(error => console.error('Error editing item:', error));
+        }
+    }
+         function editItem(row) {
+        document.getElementById("editId").value = row.ID;
+        document.getElementById("editCTN").value = row.CTN;
+        document.getElementById("editParticular").value = row.Particular;
+        document.getElementById("editBrand").value = row.Brand;
+        document.getElementById("editSerialStickerNumber").value = row.SerialStickerNumber;
+        document.getElementById("editStatus").value = row.STATUS;
+        document.getElementById("editLocation").value = row.LOCATION;
 
-        // Delete Row
-        $(".delete-btn").click(function () {
-            if (!confirm("Are you sure you want to delete this row?")) return;
+        $("#editModal").modal("show");
 
-            var rowId = $(this).data("id");
-            var trackNo = $(this).data("trackno");
+        document.getElementById("saveEditBtn").onclick = function() {
+            let updatedData = {
+                CTN: document.getElementById("editCTN").value.trim(),
+                Particular: document.getElementById("editParticular").value.trim(),
+                Brand: document.getElementById("editBrand").value.trim(),
+                SerialStickerNumber: document.getElementById("editSerialStickerNumber").value.trim(),
+                STATUS: document.getElementById("editStatus").value.trim(),
+                LOCATION: document.getElementById("editLocation").value.trim()
+            };
 
-            $.ajax({
-                url: "/TALaboratory/DeleteRow",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ trackNo: trackNo, rowId: rowId }),
-                success: function (response) {
-                    alert(response.success ? "Row deleted successfully!" : "Error: " + response.message);
-                    location.reload();
-                },
-                error: function () {
-                    alert("An error occurred while deleting.");
-                }
-            });
-        });
-    });
+            console.log("Sending data:", updatedData);
+
+            fetch(`/TALaboratory/EditItem?trackNo=${row.TrackNo}&id=${row.ID}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || "Item updated successfully.");
+                $("#editModal").modal("hide");
+            })
+            .catch(error => console.error("Error editing item:", error));
+        };
+    }
+
+
 </script>

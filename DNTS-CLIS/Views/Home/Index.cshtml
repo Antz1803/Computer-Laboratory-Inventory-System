@@ -5,74 +5,123 @@
     ViewData["Title"] = "Home Page";
 }
 
-<h1>Uploaded Records</h1>
+<style>
+    .record-card {
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin: -40px auto;
+        padding: 30px;
+        max-width: 1000px;
+    }
 
-@* Upload Button *@ 
-<div class="d-flex justify-content-center mb-3">
-    <button class="btn btn-success" type="button" onclick="toggleForm()">Upload Excel</button>
-</div>
-@* Records Table *@ 
-@if (Model == null || !Model.Any())
-{
-    <p class="text-muted text-center">@ViewBag.Message</p>
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Tracking No</th>
-                    <th>Receiver Name</th>
-                    <th>Date</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var record in Model)
-                {
-                    <tr>
-                        <td>@record.TrackNo</td>
-                        <td>@record.ReceiverName</td>
-                        <td>@record.CreatedDate.ToString("M/d/yyyy HH:mm")</td>
-                        <td>
-                            <a asp-action="PreviewRecords" asp-route-tableName="@record.TrackNo" class="btn btn-primary btn-sm">Preview</a>
-                            <form asp-action="DeleteRecords" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record and its associated tables?');">
-                                <input type="hidden" name="tableName" value="@record.TrackNo" />
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    .record-header {
+        background-color: #007bff;
+        color: white;
+        padding: 10px -1px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        font-size: 1.9rem;
+        font-weight: bold;
+        text-align: center;
+        margin: -30px -30px 30px -30px;
+    }
+
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .table thead th {
+        background-color: #d1e7dd;
+        border-bottom: 1px solid black;
+        color: black;
+    }
+
+    .table tbody tr:hover {
+        background-color: #eaf4ff;
+    }
+
+    .upload-btn {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    #uploadForm {
+        margin-top: 25px;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn + .btn {
+        margin-left: 8px;
+    }
+</style>
+
+
+<div class="record-card">
+    <div class="record-header">UPLOAD RECORDS</div>
+
+    <div class="upload-btn">
+        <button class="btn btn-success" type="button" onclick="toggleForm()">Upload Excel</button>
     </div>
-}
 
-
-@* Hidden Upload Form *@ 
-<div id="uploadForm" class="d-none">
-    <form method="post" enctype="multipart/form-data" asp-controller="Home" asp-action="UploadExcel">
-
-        @* Receiver Name *@ 
-        <div class="mb-3">
-            <label class="form-label">Receiver Name</label>
-            <input type="text" class="form-control" name="receiverName" placeholder="Enter receiver name" required />
+    @if (Model == null || !Model.Any())
+    {
+        <p class="text-muted text-center">@ViewBag.Message</p>
+    }
+    else
+    {
+        <div id="uploadForm" class="d-none">
+            <form method="post" enctype="multipart/form-data" asp-controller="Home" asp-action="UploadExcel">
+                <div class="mb-3">
+                    <label class="form-label">Receiver Name</label>
+                    <input type="text" class="form-control" name="receiverName" placeholder="Enter receiver name" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date & Time</label>
+                    <input type="datetime-local" class="form-control" name="createdDate"
+                           value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
+                </div>
+                <div class="input-group">
+                    <input type="file" class="form-control" name="file" required />
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
         </div>
-
-        @* Date & Time *@ 
-        <div class="mb-3">
-            <label class="form-label">Date & Time</label>
-            <input type="datetime-local" class="form-control" name="createdDate"
-                   value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
+        <br />
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Tracking No</th>
+                        <th>Receiver Name</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in Model)
+                    {
+                        <tr>
+                            <td>@record.TrackNo</td>
+                            <td>@record.ReceiverName</td>
+                            <td>@record.CreatedDate.ToString("M/d/yyyy HH:mm")</td>
+                            <td>
+                                <a asp-action="PreviewRecords" asp-route-tableName="@record.TrackNo" class="btn btn-primary btn-sm">Preview</a>
+                                <form asp-action="DeleteRecords" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record and its associated tables?');">
+                                    <input type="hidden" name="tableName" value="@record.TrackNo" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-
-        @* File Upload *@ 
-        <div class="input-group">
-            <input type="file" class="form-control" name="file" required />
-            <button type="submit" class="btn btn-primary">Upload</button>
-        </div>
-    </form>
+    }
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
