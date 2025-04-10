@@ -109,10 +109,10 @@
                             <td>@record.ReceiverName</td>
                             <td>@record.CreatedDate.ToString("M/d/yyyy HH:mm")</td>
                             <td>
-                                <a asp-action="PreviewRecords" asp-route-tableName="@record.TrackNo" class="btn btn-primary btn-sm">Preview</a>
+                                <a asp-action="PreviewRecords" asp-route-tableName="@record.TrackNo" class="btn"><img src="~/Images/preview.svg" width="30" height="auto" /></a>|
                                 <form asp-action="DeleteRecords" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record and its associated tables?');">
                                     <input type="hidden" name="tableName" value="@record.TrackNo" />
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    <button type="submit" class="btn"><img src="~/Images/trash.svg" width="30" height="auto" /></button>
                                 </form>
                             </td>
                         </tr>

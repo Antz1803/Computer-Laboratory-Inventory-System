@@ -2,60 +2,99 @@
 
 @{
     Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "User Details";
 }
 
-<h1>Details</h1>
+<style>
+    .details-card {
+        max-width: 600px;
+        margin: 50px auto;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top:-35px;
+    }
 
-<div>
-    <h4>User</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FirstName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FirstName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LastName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LastName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Role)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Role)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AssignLaboratory)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AssignLaboratory)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Username)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Username)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Password)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Password)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.UserId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    .details-header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .details-body {
+        padding: 30px;
+        margin-left:150px;
+    }
+
+        .details-body .row {
+            margin-bottom: 15px;
+        }
+
+    .form-label-bold {
+        font-weight: 600;
+    }
+
+    .value-text {
+        color: #333;
+    }
+
+    .details-footer {
+        padding: 20px;
+        text-align: center;
+        background-color: #f8f9fa;
+    }
+
+        .details-footer a {
+            margin: 0 10px;
+        }
+</style>
+
+<div class="details-card">
+    <div class="details-header">
+        User Details
+    </div>
+    <div class="details-body">
+        <div class="row">
+            <div class="col-sm-4 form-label-bold">First Name:</div>
+            <div class="col-sm-8 value-text">@Model.FirstName</div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 form-label-bold">Last Name:</div>
+            <div class="col-sm-8 value-text">@Model.LastName</div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 form-label-bold">Email:</div>
+            <div class="col-sm-8 value-text">@Model.Email</div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 form-label-bold">Username:</div>
+            <div class="col-sm-8 value-text">@Model.Username</div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 form-label-bold">Role:</div>
+            <div class="col-sm-8 value-text">@Model.Role</div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 form-label-bold">Laboratory:</div>
+            <div class="col-sm-8 value-text">@Model.AssignLaboratory</div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 form-label-bold">Password:</div>
+            <div class="col-sm-8 value-text">@Model.Password</div>
+        </div>
+    </div>
+    <div class="details-footer">
+        <a asp-action="Edit" asp-route-id="@Model?.UserId" class="btn btn-outline-primary">Edit</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+    </div>
 </div>
