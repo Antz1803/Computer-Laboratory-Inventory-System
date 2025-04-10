@@ -3,11 +3,71 @@
     Layout = "~/Views/Shared/_LayoutLogin.cshtml";
     ViewData["Title"] = "Login";
 }
+<style>
+    body {
+        background-image: url('/images/login-background.png');
+        background-repeat: no-repeat;
+        background-size: cover;
+        height: 100vh;
+        overflow: hidden;
+        background-color: #a3cef1;
+    }
+
+    .glass-card {
+        background: rgba(2, 123, 206, 0.3); 
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
+        padding: 20px;
+    }
+
+        .glass-card .form-label {
+            color: #fff;
+        }
+
+        .glass-card .form-control {
+            background-color: rgba(255, 255, 255, 0.5); 
+            color: #000; 
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+            .glass-card .form-control:focus {
+                box-shadow: 0 0 5px rgba(2, 123, 206, 0.5); 
+            }
+
+        .glass-card .btn-primary {
+            background-color: #027bce;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff; 
+        }
+
+            .glass-card .btn-primary:hover {
+                background-color: #0168b7; 
+            }
+            .Logo{
+                width:150px;
+                height:auto;
+            }
+
+    .header-container {
+        margin-bottom: -75px;
+        margin-top:50px;
+    }
+</style>
+<div class="d-flex flex-column align-items-center justify-content-center" style="height: 100vh;">
+    <div class="header-container">
+        <img src="~/Images/dnts-act.png" width="930" height="auto" alt="DNTS Logo" />
+    </div>
 <div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow-lg p-4" style="width: 400px; border-radius: 10px;">
+    <div class="card glass-card shadow-lg" style="width: 400px;">
         <div class="text-center">
-            <h3 class="mb-3">Welcome</h3>
-            <p class="text-muted">Sign in to continue</p>
+            <h3><img class="Logo" src="~/Images/dnts.png"/></h3>
+            <p class="text-white">Sign in to continue</p>
         </div>
 
         @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
@@ -18,7 +78,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
-
         <form asp-action="Index" method="post">
             <div asp-validation-summary="None" class="text-danger mb-3"></div>
             <div class="form-group mb-3">
@@ -31,13 +90,13 @@
                 <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="d-grid align-items-center justify-content-center">
+                <button type="submit" class="btn btn-primary" style="width:100px;">Login</button>
             </div>
         </form>
     </div>
 </div>
-
+</div>
 <!-- Toast Notification for Error -->
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
@@ -72,4 +131,3 @@
         });
     </script>
 }
-
