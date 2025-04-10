@@ -5,12 +5,18 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 rounded-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h2 class="mb-0" style="font-weight: bold;">USERS</h2>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <a asp-action="Create" class="btn btn-success">Create New</a>
+            </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover">
     <thead>
         <tr>
             <th>
@@ -70,3 +76,19 @@
 }
     </tbody>
 </table>
+</div>
+</div>
+    </div>
+</div>
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .table thead th {
+        background-color: #d1e7dd;
+        border-bottom: 1px solid black;
+        color: black;
+    }
+</style>
