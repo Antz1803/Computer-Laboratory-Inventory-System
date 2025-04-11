@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using NuGet.DependencyResolver;
 
 namespace DNTS_CLIS.Controllers
 {
@@ -282,26 +281,34 @@ namespace DNTS_CLIS.Controllers
 
             try
             {
-                string deleteTableQuery = $"DROP TABLE [{trackNo}]";
-
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("DNTS_CLISContext")))
                 {
                     connection.Open();
-                    using (var command = new SqlCommand(deleteTableQuery, connection))
+
+                    // First, delete the record from AssignedLaboratories
+                    string deleteAssignmentQuery = "DELETE FROM AssignedLaboratories WHERE TrackNo = @TrackNo";
+                    using (var deleteAssignmentCmd = new SqlCommand(deleteAssignmentQuery, connection))
                     {
-                        command.ExecuteNonQuery();
+                        deleteAssignmentCmd.Parameters.AddWithValue("@TrackNo", trackNo);
+                        deleteAssignmentCmd.ExecuteNonQuery();
+                    }
+
+                    // Then, drop the corresponding track table
+                    string deleteTableQuery = $"DROP TABLE [{trackNo}]";
+                    using (var deleteTableCmd = new SqlCommand(deleteTableQuery, connection))
+                    {
+                        deleteTableCmd.ExecuteNonQuery();
                     }
                 }
 
-                TempData["SuccessMessage"] = $"Table {trackNo} deleted successfully.";
+                TempData["SuccessMessage"] = $"TrackNo '{trackNo}' and its assignment have been deleted successfully.";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error deleting table: {ex.Message}";
+                TempData["ErrorMessage"] = $"Error deleting TrackNo: {ex.Message}";
             }
 
             return RedirectToAction("Index");
         }
-
     }
 }
