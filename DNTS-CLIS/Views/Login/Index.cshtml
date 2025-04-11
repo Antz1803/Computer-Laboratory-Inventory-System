@@ -3,22 +3,46 @@
     Layout = "~/Views/Shared/_LayoutLogin.cshtml";
     ViewData["Title"] = "Login";
 }
+
 <style>
     body {
-        background-image: url('/images/login-background.png');
+        background-image: url('/images/loginbackground.png');
         background-repeat: no-repeat;
         background-size: cover;
-        height: 100vh;
-        overflow: hidden;
         background-color: #a3cef1;
+        height: 100vh;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        grid-template-rows: auto -1fr;
+        place-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .login-wrapper {
+        display: grid;
+        grid-template-rows: auto auto;
+        justify-items: center;
+        align-items: center;
+        gap: 30px;
+        width: 100%;
+        max-width: 1000px;
+    }
+
+    .header-container img {
+        max-width: 100%;
+        height: auto;
     }
 
     .glass-card {
-        background: rgba(2, 123, 206, 0.3); 
+        background: rgba(2, 123, 206, 0.3);
         backdrop-filter: blur(10px);
         border-radius: 15px;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
-        padding: 20px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        width: 100%;
+        max-width: 400px;
     }
 
         .glass-card .form-label {
@@ -26,15 +50,15 @@
         }
 
         .glass-card .form-control {
-            background-color: rgba(255, 255, 255, 0.5); 
-            color: #000; 
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #000;
             border: none;
             border-radius: 5px;
             padding: 10px;
         }
 
             .glass-card .form-control:focus {
-                box-shadow: 0 0 5px rgba(2, 123, 206, 0.5); 
+                box-shadow: 0 0 5px rgba(2, 123, 206, 0.5);
             }
 
         .glass-card .btn-primary {
@@ -43,30 +67,37 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            color: #fff; 
+            color: #fff;
+            transition: background-color 0.3s ease;
         }
 
             .glass-card .btn-primary:hover {
-                background-color: #0168b7; 
-            }
-            .Logo{
-                width:100px;
-                height:auto;
+                background-color: #0168b7;
             }
 
-    .header-container {
-        margin-bottom: -25px;
-        margin-top:20px;
+    .Logo {
+        width: 100px;
+        height: auto;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 9999;
     }
 </style>
-    <div class="d-flex flex-column align-items-center justify-content-center container-fluid" style="height: 100vh;">
-    <div class="header-container">
-        <img src="~/Images/dnts-act.png" width="610" height="auto" alt="DNTS Logo" />
+
+<div class="login-wrapper">
+    <!-- Logo Header -->
+    <div class="header-container text-center">
+        <img src="~/Images/dnts-act.png" alt="DNTS Logo" style="width:250px;" />
     </div>
-<div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="card glass-card shadow-lg" style="width: 400px;">
-        <div class="text-center">
-            <h3><img class="Logo" src="~/Images/dnts.png"/></h3>
+
+    <!-- Login Form -->
+    <div class="glass-card">
+        <div class="text-center mb-3">
+            <img class="Logo mb-5" src="~/Images/dnts.png" alt="Small Logo" />
             <p class="text-white">Sign in to continue</p>
         </div>
 
@@ -78,29 +109,33 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
+
         <form asp-action="Index" method="post">
             <div asp-validation-summary="None" class="text-danger mb-3"></div>
+
             <div class="form-group mb-3">
                 <label asp-for="Username" class="form-label"></label>
                 <input asp-for="Username" class="form-control" placeholder="Enter your username" />
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
+
             <div class="form-group mb-3">
                 <label asp-for="Password" class="form-label"></label>
                 <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
-                <div class="d-grid align-items-center justify-content-center">
-                <button type="submit" class="btn btn-primary" style="width:100px;">Login</button>
+
+            <div class="d-grid text-center">
+                <button type="submit" class="btn btn-primary">Login</button>
             </div>
         </form>
     </div>
 </div>
-</div>
+
 <!-- Toast Notification for Error -->
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+    <div class="toast-container">
         <div id="loginToast" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header bg-danger text-white">
                 <i class="bi bi-exclamation-circle-fill me-2"></i>
@@ -115,11 +150,9 @@
 }
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             var toastEl = document.getElementById('loginToast');
             if (toastEl) {
                 var toast = new bootstrap.Toast(toastEl, {
