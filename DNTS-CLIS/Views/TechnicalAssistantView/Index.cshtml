@@ -26,7 +26,14 @@
         }
     }
 }
-<h1 class="text-center mb-4">@ViewData["Title"]</h1>
+<div class="container mt-4" >
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0" style="font-weight: bold;">@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body">
 <h5 class="text-center mb-4">Date of Acquisition: @dateOfAcquisitionValue</h5>
 
 @* Success/Error Messages *@
@@ -37,38 +44,38 @@
         <div class="alert alert-@(msg == "SuccessMessage" ? "success" : "danger")">@TempData[msg]</div>
     }
 }
-<div>
-    <div>
-    <form method="get">
-        <select id="trackNoSelect" name="selectedTrackNo" class="form-select w-auto" onchange="this.form.submit()">
-            <option value="">-- Select Track No. --</option>
-            @foreach (var track in (ViewBag.TrackNumbers as List<string> ?? new List<string>()))
-            {
-                <option value="@track" selected="@(selectedTrackNo == track ? "selected" : null)">@track</option>
-            }
-        </select>
-    </form>
-</div>
-<div>
-        <div class="mt-3">
-            <form method="post" asp-action="AssignLaboratory">
-                <input type="hidden" name="selectedTrackNo" value="@selectedTrackNo" />
-                <label for="IDSelect"><strong>Assign to Laboratory:</strong></label>
-                <select id="IDSelect" name="selectedIDLaboratories" class="form-select w-auto">
-                    <option value="">-- Select Laboratory --</option>
-                    @foreach (var lab in (ViewBag.LaboratoryName as List<string> ?? new List<string>()))
-                    {
-                        <option value="@lab">@lab</option>
-                    }
-                </select>
-                <button type="submit" class="btn btn-success mt-3">Assign</button>
-                <a asp-controller="TechnicalAssistantView" asp-action="AssignHistory" class="btn btn-secondary mt-3">Assigned History</a>
-            </form>
-        </div>
-</div>
-</div>
+                    <br />   
+                    <div class="d-flex align-items-center justify-content-between gap-3 mt-3">
+                        <div class="d-inline">
+                            <form method="get">
+                                <select id="trackNoSelect" name="selectedTrackNo" class="form-select w-auto" onchange="this.form.submit()">
+                                    <option value="">-- Select Track No. --</option>
+                                    @foreach (var track in (ViewBag.TrackNumbers as List<string> ?? new List<string>()))
+                                    {
+                                        <option value="@track" selected="@(selectedTrackNo == track ? "selected" : null)">@track</option>
+                                    }
+                                </select>
+                            </form>
+                        </div>
+                        <div style="margin-left:-170px;">
+                        <form method="post" asp-action="AssignLaboratory">
+                            <input type="hidden" name="selectedTrackNo" value="@selectedTrackNo" />
+                            <select id="IDSelect" name="selectedIDLaboratories" class="form-select w-auto">
+                                <option value="">-- Select Laboratory --</option>
+                                @foreach (var lab in (ViewBag.LaboratoryName as List<string> ?? new List<string>()))
+                                {
+                                    <option value="@lab">@lab</option>
+                                }
+                            </select>
+                        </form>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-success">Assign</button>
+                            <a asp-controller="TechnicalAssistantView" asp-action="AssignHistory" class="btn btn-secondary">Assigned History</a>
+                        </div>
+                    </div>
 
-    <br/>
+                <br/>    <br/>
 @if (Model?.Rows.Count > 0)
 {
     <div class="table-responsive">
@@ -151,6 +158,12 @@ else
         </div>
     </div>
 </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
