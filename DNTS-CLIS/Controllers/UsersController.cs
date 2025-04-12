@@ -52,7 +52,7 @@ namespace Clis5.Controllers
             var roles = new List<SelectListItem>
     {
         new SelectListItem { Value = "Supervisor", Text = "Supervisor" },
-        new SelectListItem { Value = "Technical", Text = "Technical" }
+        new SelectListItem { Value = "Technical Assistant", Text = "Technical Assistant" }
     };
 
             ViewBag.Roles = roles;

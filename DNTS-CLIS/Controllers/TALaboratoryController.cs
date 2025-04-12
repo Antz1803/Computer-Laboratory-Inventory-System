@@ -81,5 +81,63 @@ namespace DNTS_CLIS.Controllers
 
             return Json(result);
         }
+        [HttpPost]
+        public IActionResult SaveEditedItem([FromBody] EditedItemModel model)
+        {
+            if (model == null || string.IsNullOrWhiteSpace(model.TrackNo))
+            {
+                return BadRequest("Invalid data.");
+            }
+
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    var query = $@"
+                UPDATE [{model.TrackNo}]
+                SET CTN = @CTN,
+                    Particular = @Particular,
+                    Brand = @Brand,
+                    [Serial Sticker Number] = @SerialStickerNumber,
+                    Status = @Status,
+                    Location = @Location
+                WHERE Id = @Id";
+
+                    using (var cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@CTN", model.CTN ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Particular", model.Particular ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Brand", model.Brand ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@SerialStickerNumber", model.SerialStickerNumber ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Status", model.Status ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Location", model.Location ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Id", model.Id);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                return Ok(new { message = "Item updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
+
+        public class EditedItemModel
+        {
+            public int Id { get; set; }
+            public string CTN { get; set; }
+            public string Particular { get; set; }
+            public string Brand { get; set; }
+            public string SerialStickerNumber { get; set; }
+            public string Status { get; set; }
+            public string Location { get; set; }
+            public string TrackNo { get; set; }
+        }
+
     }
 }

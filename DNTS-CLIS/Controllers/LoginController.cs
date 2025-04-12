@@ -136,7 +136,7 @@ namespace DNTS_CLIS.Controllers
 
                     ViewBag.ErrorMessage = null;
 
-                    if (user.Role == "Technical")
+                    if (user.Role == "Technical Assistant")
                     {
                         var assignedLaboratory = _context.AssignedLaboratories
                             .Where(a => a.LaboratoryName == user.AssignLaboratory)

@@ -222,4 +222,37 @@
                 .catch(error => console.error('Error fetching table data:', error));
         }
     }
+
+        document.getElementById("saveEditBtn").addEventListener("click", function () {
+        const trackNo = document.getElementById("selectedTrackNo").value;
+
+        const data = {
+            Id: document.getElementById("editId").value,
+            CTN: document.getElementById("editCTN").value,
+            Particular: document.getElementById("editParticular").value,
+            Brand: document.getElementById("editBrand").value,
+            SerialStickerNumber: document.getElementById("editSerialStickerNumber").value,
+            Status: document.getElementById("editStatus").value,
+            Location: document.getElementById("editLocation").value,
+            TrackNo: trackNo
+        };
+
+        fetch('/TALaboratory/SaveEditedItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                $('#editModal').modal('hide');
+                fetchTableData(); // Refresh table
+            } else {
+                console.error("Failed to save item.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+
 </script>
