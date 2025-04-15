@@ -114,29 +114,33 @@ namespace DNTS_CLIS.Controllers
                 string PasswordAdmin = "Admin";
                 string RoleAdmin = "Admin";
 
-                // Check if the entered credentials match the admin
+                // Admin login check
                 if (model.Username == UsernameAdmin && model.Password == PasswordAdmin)
                 {
                     HttpContext.Session.SetString("Username", UsernameAdmin);
                     HttpContext.Session.SetString("Role", RoleAdmin);
                     HttpContext.Session.SetString("FullName", "Administrator");
 
-                    return RedirectToAction("Logo", "Home"); // Redirect Admin to a specific page
+                    return RedirectToAction("Logo", "Home");
                 }
 
-                // Check regular users from database
+                // Fetch user from database
                 var user = _context.User
                     .FirstOrDefault(u => u.Username == model.Username && u.Password == model.Password);
 
                 if (user != null)
                 {
+                    if (string.IsNullOrEmpty(user.Role))
+                    {
+                        ViewBag.ErrorMessage = "Your account has no role assigned.";
+                        return View(model);
+                    }
+
                     HttpContext.Session.SetString("Username", user.Username);
                     HttpContext.Session.SetString("Role", user.Role);
                     HttpContext.Session.SetString("FullName", $"{user.FirstName} {user.LastName}");
 
-                    ViewBag.ErrorMessage = null;
-
-                    if (user.Role == "Technical Assistant")
+                    if (user.Role.Equals("Technical Assistant", StringComparison.OrdinalIgnoreCase))
                     {
                         var assignedLaboratory = _context.AssignedLaboratories
                             .Where(a => a.LaboratoryName == user.AssignLaboratory)
@@ -154,20 +158,25 @@ namespace DNTS_CLIS.Controllers
                             return View(model);
                         }
                     }
-
-                    // Redirect based on role
-                    return user.Role switch
+                    else if (user.Role.Equals("Supervisor", StringComparison.OrdinalIgnoreCase))
                     {
-                        "Supervisor" => RedirectToAction("Logo", "Home"),
-                        _ => RedirectToAction("Index", "Home")
-                    };
+                        return RedirectToAction("Logo", "Home");
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Unauthorized role. Access denied.";
+                        return View(model);
+                    }
                 }
                 else
                 {
                     ViewBag.ErrorMessage = "Invalid username or password.";
+                    return View(model);
                 }
             }
+
             return View(model);
         }
+
     }
 }

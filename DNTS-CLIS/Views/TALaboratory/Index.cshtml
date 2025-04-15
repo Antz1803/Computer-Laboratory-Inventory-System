@@ -157,7 +157,7 @@
 </div>
 
 <script>
-    function fetchTableData() {
+       function fetchTableData() {
         let trackNo = document.getElementById("selectedTrackNo").value;
         let tableHead = document.getElementById("tableHead");
         let tableBody = document.getElementById("tableBody");
@@ -167,67 +167,133 @@
 
         if (trackNo) {
             fetch(`/TALaboratory/GetTableDataOne?trackNo=${encodeURIComponent(trackNo)}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log("Fetched data:", data); // Debug: Log the data structure
+                    if (!data || data.length === 0) {
+                        tableBody.innerHTML = "<tr><td colspan='8'>No data available</td></tr>";
+                        return;
+                    }
+
                     // Table header row
-                    let headerRow = tableHead;
+                    let headerRow = document.createElement("tr");
+                    tableHead.appendChild(headerRow);
+
+                    // Add ID column header
+                    let idHeader = document.createElement("th");
+                    idHeader.textContent = "ID";
+                    headerRow.appendChild(idHeader);
 
                     // All column names from the first data object
-                    let columns = Object.keys(data[0]).filter(column => column.toLowerCase() !== "id");
+                    let columns = ["CTN", "Particular", "Brand", "Serial Sticker Number", "Status", "Location"];
 
-                    // Create individual header cells (excluding ID)
+                    // Create headers for each column
                     columns.forEach(column => {
                         let th = document.createElement("th");
                         th.textContent = column;
-                        th.style.padding = "10px";
                         headerRow.appendChild(th);
                     });
+
+                    // Add Actions column header
+                    let actionsHeader = document.createElement("th");
+                    actionsHeader.textContent = "Actions";
+                    headerRow.appendChild(actionsHeader);
 
                     // Create table rows for each data item
                     data.forEach(row => {
                         let tr = document.createElement("tr");
 
-                        // Add each column value as a cell (excluding ID)
+                        // Add ID cell
+                        let idCell = document.createElement("td");
+                        idCell.textContent = row.Id || row.ID || "";
+                        tr.appendChild(idCell);
+
+                        // Map the row object to our expected column names
+                        let mappedRow = {
+                            "CTN": row.CTN || row.Ctn || "",
+                            "Particular": row.Particular || "",
+                            "Brand": row.Brand || "",
+                            "Serial Sticker Number": row["Serial Sticker Number"] || row.SerialStickerNumber || "",
+                            "Status": row.Status || "",
+                            "Location": row.Location || ""
+                        };
+
+                        // Add data cells
                         columns.forEach(column => {
                             let td = document.createElement("td");
-                            td.textContent = row[column] !== null ? row[column] : '';
-                            td.style.padding = "8px";
+                            td.textContent = mappedRow[column];
                             tr.appendChild(td);
                         });
 
-                        // Actions
+                        // Add actions
                         let actionsTd = document.createElement("td");
-                        let repairBtn = document.createElement("button");
-                        repairBtn.textContent = "Repair";
-                        repairBtn.classList.add("btn", "btn-warning");
-                        repairBtn.onclick = function() {
-                            repairItem(row);
-                        };
 
                         let editBtn = document.createElement("button");
-                        editBtn.textContent = "Edit";
-                        editBtn.classList.add("btn", "btn-secondary");
+                        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                        editBtn.className = "btn btn-primary btn-sm m-1";
                         editBtn.onclick = function() {
+                            console.log("Edit clicked for row:", row); // Debug: Log the row data
                             editItem(row);
                         };
 
-                        actionsTd.appendChild(repairBtn);
                         actionsTd.appendChild(editBtn);
-
                         tr.appendChild(actionsTd);
 
                         tableBody.appendChild(tr);
                     });
                 })
-                .catch(error => console.error('Error fetching table data:', error));
+                .catch(error => {
+                    console.error('Error fetching table data:', error);
+                    tableBody.innerHTML = `<tr><td colspan='8'>Error loading data: ${error.message}</td></tr>`;
+                });
+        } else {
+            tableBody.innerHTML = "<tr><td colspan='8'>Please select a Track No</td></tr>";
         }
     }
 
-        document.getElementById("saveEditBtn").addEventListener("click", function () {
+    // 2. Improved editItem function with more robust property access
+    function editItem(item) {
+        console.log("Opening edit modal for item:", item); // Debug: Log the item being edited
+
+        // Get the ID regardless of casing
+        const id = item.Id || item.ID || item.id || "";
+
+        // Populate the edit modal with item data, handling potential property name variations
+        document.getElementById("editId").value = id;
+        document.getElementById("editCTN").value = item.CTN || item.Ctn || "";
+        document.getElementById("editParticular").value = item.Particular || "";
+        document.getElementById("editBrand").value = item.Brand || "";
+        document.getElementById("editSerialStickerNumber").value =
+            item["SERIALSTICKERNUMBER"] || item.SerialStickerNumber || "";
+        document.getElementById("editStatus").value = item.Status || "";
+        document.getElementById("editLocation").value = item.Location || "";
+
+        // Show the modal using jQuery
+        $('#editModal').modal('show');
+    }
+
+    // 3. Improved save button click handler with better error handling
+    document.getElementById("saveEditBtn").addEventListener("click", function() {
         const trackNo = document.getElementById("selectedTrackNo").value;
+        const id = document.getElementById("editId").value;
+
+        if (!trackNo) {
+            alert("Track No is required");
+            return;
+        }
+
+        if (!id) {
+            alert("Item ID is missing");
+            return;
+        }
 
         const data = {
-            Id: document.getElementById("editId").value,
+            Id: parseInt(id),
             CTN: document.getElementById("editCTN").value,
             Particular: document.getElementById("editParticular").value,
             Brand: document.getElementById("editBrand").value,
@@ -237,6 +303,8 @@
             TrackNo: trackNo
         };
 
+        console.log("Sending data to server:", data); // Debug: Log the data being sent
+
         fetch('/TALaboratory/SaveEditedItem', {
             method: 'POST',
             headers: {
@@ -245,14 +313,33 @@
             body: JSON.stringify(data)
         })
         .then(response => {
-            if (response.ok) {
-                $('#editModal').modal('hide');
-                fetchTableData(); // Refresh table
-            } else {
-                console.error("Failed to save item.");
+            console.log("Server response:", response); // Debug: Log the response
+
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || `Server returned ${response.status}`);
+                });
             }
+            return response.json();
         })
-        .catch(error => console.error("Error:", error));
+        .then(result => {
+            console.log("Success:", result);
+            alert("Item updated successfully!");
+            $('#editModal').modal('hide');
+            fetchTableData(); // Refresh the table
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to update item: " + error.message);
+        });
     });
 
+    // 4. Initialize everything when the document loads
+    document.addEventListener("DOMContentLoaded", function() {
+        // If there's already a Track No selected, load its data
+        const trackNoSelect = document.getElementById("selectedTrackNo");
+        if (trackNoSelect.value) {
+            fetchTableData();
+        }
+    });
 </script>

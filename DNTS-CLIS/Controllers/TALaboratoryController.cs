@@ -81,12 +81,30 @@ namespace DNTS_CLIS.Controllers
 
             return Json(result);
         }
+        // This model class should match the JSON being sent from the client
+        public class EditedItemModel
+        {
+            public int Id { get; set; }
+            public string TrackNo { get; set; }
+            public string CTN { get; set; }
+            public string Particular { get; set; }
+            public string Brand { get; set; }
+            public string SerialStickerNumber { get; set; }
+            public string Status { get; set; }
+            public string Location { get; set; }
+        }
+
         [HttpPost]
         public IActionResult SaveEditedItem([FromBody] EditedItemModel model)
         {
-            if (model == null || string.IsNullOrWhiteSpace(model.TrackNo))
+            if (model == null)
             {
-                return BadRequest("Invalid data.");
+                return BadRequest("Model is null");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.TrackNo))
+            {
+                return BadRequest("TrackNo is required");
             }
 
             try
@@ -95,49 +113,57 @@ namespace DNTS_CLIS.Controllers
                 {
                     conn.Open();
 
-                    var query = $@"
-                UPDATE [{model.TrackNo}]
-                SET CTN = @CTN,
+                    // Log what we're trying to do
+                    System.Diagnostics.Debug.WriteLine($"Updating item {model.Id} in table {model.TrackNo}");
+
+                    // Safely escape the table name
+                    string safeTableName = model.TrackNo.Replace("'", "''");
+
+                    // Create the SQL query - note how we're handling the column name with spaces
+                    string query = $@"
+                UPDATE [{safeTableName}]
+                SET 
+                    CTN = @CTN,
                     Particular = @Particular,
                     Brand = @Brand,
-                    [Serial Sticker Number] = @SerialStickerNumber,
+                    [SERIALSTICKERNUMBER] = @SerialStickerNumber,
                     Status = @Status,
                     Location = @Location
                 WHERE Id = @Id";
 
                     using (var cmd = new SqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@CTN", model.CTN ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Particular", model.Particular ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Brand", model.Brand ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@SerialStickerNumber", model.SerialStickerNumber ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Status", model.Status ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Location", model.Location ?? (object)DBNull.Value);
+                        // Add parameters
+                        cmd.Parameters.AddWithValue("@CTN", (object)model.CTN ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Particular", (object)model.Particular ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Brand", (object)model.Brand ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@SerialStickerNumber", (object)model.SerialStickerNumber ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Status", (object)model.Status ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Location", (object)model.Location ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Id", model.Id);
 
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+                        // Execute and get affected rows
+                        int rowsAffected = cmd.ExecuteNonQuery();
 
-                return Ok(new { message = "Item updated successfully." });
+                        // Log the result
+                        System.Diagnostics.Debug.WriteLine($"Rows affected: {rowsAffected}");
+
+                        if (rowsAffected == 0)
+                        {
+                            return NotFound($"No record found with ID {model.Id} in table {model.TrackNo}");
+                        }
+                    }
+
+                    return Ok(new { success = true, message = "Item updated successfully" });
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine($"Error in SaveEditedItem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                return StatusCode(500, new { success = false, message = $"Internal server error: {ex.Message}" });
             }
         }
-
-        public class EditedItemModel
-        {
-            public int Id { get; set; }
-            public string CTN { get; set; }
-            public string Particular { get; set; }
-            public string Brand { get; set; }
-            public string SerialStickerNumber { get; set; }
-            public string Status { get; set; }
-            public string Location { get; set; }
-            public string TrackNo { get; set; }
-        }
-
     }
 }
