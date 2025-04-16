@@ -67,7 +67,7 @@ namespace DNTS_CLIS.Controllers
                 trackNumbers.Add(reader.GetString(0));
             }
 
-            Console.WriteLine($"Tracks for {laboratoryName}: {string.Join(", ", trackNumbers)}"); // Debugging output
+            Console.WriteLine($"Tracks for {laboratoryName}: {string.Join(", ", trackNumbers)}"); 
 
             return Json(trackNumbers);
         }

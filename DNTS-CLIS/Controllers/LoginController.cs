@@ -1,7 +1,12 @@
 ﻿using DNTS_CLIS.Data;
 using DNTS_CLIS.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using NuGet.DependencyResolver;
+using System.Drawing.Drawing2D;
+using System.Security.Principal;
 
 namespace DNTS_CLIS.Controllers
 {
@@ -101,9 +106,31 @@ namespace DNTS_CLIS.Controllers
     [Id]             INT IDENTITY(1, 1) NOT NULL,
     [LaboratoryName] NVARCHAR(50) NULL,
     [CreatedDate]    DATE NULL );
-        END";
+        END"
+            ;
 
             _context.Database.ExecuteSqlRaw(queryUserTwo);
+
+            string queryUserThree = @"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name = 'RepairRequests')
+BEGIN
+    CREATE TABLE RepairRequests(
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        ItemId INT NOT NULL,
+        TrackNo NVARCHAR(100) NOT NULL,
+        CTN NVARCHAR(100) NULL,
+        Particular NVARCHAR(255) NULL,
+        Brand NVARCHAR(100) NULL,
+        SerialStickerNumber NVARCHAR(100) NULL,
+        Description NVARCHAR(MAX) NULL,
+        Status NVARCHAR(50) NOT NULL,
+        RequestDate DATETIME NOT NULL,
+        RequestedBy NVARCHAR(100) NULL,
+        Location NVARCHAR(100) NULL,
+        CompletedDate DATETIME NULL,
+        CompletedBy NVARCHAR(100) NULL
+    );
+END";
+            _context.Database.ExecuteSqlRaw(queryUserThree);
         }
         public IActionResult Index(LoginViewModel model)
         {

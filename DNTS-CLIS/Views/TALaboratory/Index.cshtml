@@ -131,10 +131,6 @@
                             <label for="location">Location:</label>
                             <input type="text" id="location" class="form-control" readonly>
                         </div>
-                        <div class="col-md-6">
-                            <label for="dateOfAcquisition">Date of Acquisition:</label>
-                            <input type="text" id="dateOfAcquisition" class="form-control" readonly>
-                        </div>
                     </div>
 
                     <div class="form-group mt-4">
@@ -155,9 +151,13 @@
         </div>
     </div>
 </div>
-
+<li class="nav-item">
+    <a class="nav-link" href="@Url.Action("RepairRequests", "TALaboratory")">
+        <i class="fas fa-tools"></i> Repair Requests
+    </a>
+</li>
 <script>
-       function fetchTableData() {
+    function fetchTableData() {
         let trackNo = document.getElementById("selectedTrackNo").value;
         let tableHead = document.getElementById("tableHead");
         let tableBody = document.getElementById("tableBody");
@@ -174,32 +174,36 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log("Fetched data:", data); // Debug: Log the data structure
+                    console.log("Fetched data:", data);
                     if (!data || data.length === 0) {
                         tableBody.innerHTML = "<tr><td colspan='8'>No data available</td></tr>";
                         return;
                     }
 
-                    // Table header row
+                    // Get all possible columns from the first data item
+                    const firstItem = data[0];
+                    const allColumns = ["CTN", "Particular", "Brand", "SerialStickerNumber", "Status"];
+
+                    // Only add Location if it exists in the data
+                    if (firstItem.hasOwnProperty("Location")) {
+                        allColumns.push("Location");
+                    }
+
                     let headerRow = document.createElement("tr");
                     tableHead.appendChild(headerRow);
 
-                    // Add ID column header
-                    let idHeader = document.createElement("th");
-                    idHeader.textContent = "ID";
-                    headerRow.appendChild(idHeader);
-
-                    // All column names from the first data object
-                    let columns = ["CTN", "Particular", "Brand", "Serial Sticker Number", "Status", "Location"];
-
                     // Create headers for each column
-                    columns.forEach(column => {
+                    allColumns.forEach(column => {
                         let th = document.createElement("th");
-                        th.textContent = column;
+                        // Format the display name ("SerialStickerNumber" -> "Serial Sticker Number")
+                        if (column === "SerialStickerNumber") {
+                            th.textContent = "Serial Sticker Number";
+                        } else {
+                            th.textContent = column;
+                        }
                         headerRow.appendChild(th);
                     });
 
-                    // Add Actions column header
                     let actionsHeader = document.createElement("th");
                     actionsHeader.textContent = "Actions";
                     headerRow.appendChild(actionsHeader);
@@ -208,40 +212,34 @@
                     data.forEach(row => {
                         let tr = document.createElement("tr");
 
-                        // Add ID cell
-                        let idCell = document.createElement("td");
-                        idCell.textContent = row.Id || row.ID || "";
-                        tr.appendChild(idCell);
-
-                        // Map the row object to our expected column names
-                        let mappedRow = {
-                            "CTN": row.CTN || row.Ctn || "",
-                            "Particular": row.Particular || "",
-                            "Brand": row.Brand || "",
-                            "Serial Sticker Number": row["Serial Sticker Number"] || row.SerialStickerNumber || "",
-                            "Status": row.Status || "",
-                            "Location": row.Location || ""
-                        };
-
-                        // Add data cells
-                        columns.forEach(column => {
+                        allColumns.forEach(column => {
                             let td = document.createElement("td");
-                            td.textContent = mappedRow[column];
+                            td.textContent = getPropertyCaseInsensitive(row, column) || "";
                             tr.appendChild(td);
                         });
 
                         // Add actions
                         let actionsTd = document.createElement("td");
 
+                       
+    let repairBtn = document.createElement("button");
+    repairBtn.innerHTML = '<i class="fas fa-tools"></i> Repair';
+    repairBtn.className = "btn btn-warning btn-sm m-1";
+    repairBtn.onclick = function() {
+        openRepairModal(row);
+    };
+     
+
+
                         let editBtn = document.createElement("button");
                         editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
                         editBtn.className = "btn btn-primary btn-sm m-1";
                         editBtn.onclick = function() {
-                            console.log("Edit clicked for row:", row); // Debug: Log the row data
                             editItem(row);
                         };
 
                         actionsTd.appendChild(editBtn);
+                          actionsTd.appendChild(repairBtn);
                         tr.appendChild(actionsTd);
 
                         tableBody.appendChild(tr);
@@ -256,28 +254,52 @@
         }
     }
 
-    // 2. Improved editItem function with more robust property access
     function editItem(item) {
-        console.log("Opening edit modal for item:", item); // Debug: Log the item being edited
+        console.log("Opening edit modal for item:", item);
 
-        // Get the ID regardless of casing
-        const id = item.Id || item.ID || item.id || "";
+        // Populate the edit modal using case-insensitive getter
+           document.getElementById("editId").value = getPropertyCaseInsensitive(item, "id");
+        document.getElementById("editCTN").value = getPropertyCaseInsensitive(item, "ctn");
+        document.getElementById("editParticular").value = getPropertyCaseInsensitive(item, "particular");
+        document.getElementById("editBrand").value = getPropertyCaseInsensitive(item, "brand");
+        document.getElementById("editSerialStickerNumber").value = getPropertyCaseInsensitive(item, "serialStickerNumber");
+        document.getElementById("editStatus").value = getPropertyCaseInsensitive(item, "status");
 
-        // Populate the edit modal with item data, handling potential property name variations
-        document.getElementById("editId").value = id;
-        document.getElementById("editCTN").value = item.CTN || item.Ctn || "";
-        document.getElementById("editParticular").value = item.Particular || "";
-        document.getElementById("editBrand").value = item.Brand || "";
-        document.getElementById("editSerialStickerNumber").value =
-            item["SERIALSTICKERNUMBER"] || item.SerialStickerNumber || "";
-        document.getElementById("editStatus").value = item.Status || "";
-        document.getElementById("editLocation").value = item.Location || "";
+        // Only try to set the Location if the edit field exists
+        const locationField = document.getElementById("editLocation");
+        if (locationField) {
+            const hasLocation = Object.keys(item).some(key => key.toLowerCase() === "location");
+            locationField.value = hasLocation ? getPropertyCaseInsensitive(item, "location") : "";
+
+            // Show/hide the location field container based on whether it exists in the data
+            const locationContainer = locationField.closest(".col-md-6");
+            if (locationContainer) {
+                locationContainer.style.display = hasLocation ? "block" : "none";
+            }
+        }
 
         // Show the modal using jQuery
         $('#editModal').modal('show');
     }
 
-    // 3. Improved save button click handler with better error handling
+    // Helper function to get property values case-insensitively
+    function getPropertyCaseInsensitive(obj, propertyName) {
+        if (!obj || !propertyName) return "";
+
+        // Direct match first
+        if (obj[propertyName] !== undefined) return obj[propertyName];
+
+        // Try case-insensitive match
+        propertyName = propertyName.toLowerCase();
+        for (let key in obj) {
+            if (key.toLowerCase() === propertyName) {
+                return obj[key];
+            }
+        }
+
+        return "";
+    }
+
     document.getElementById("saveEditBtn").addEventListener("click", function() {
         const trackNo = document.getElementById("selectedTrackNo").value;
         const id = document.getElementById("editId").value;
@@ -303,7 +325,7 @@
             TrackNo: trackNo
         };
 
-        console.log("Sending data to server:", data); // Debug: Log the data being sent
+        console.log("Sending data to server:", data); 
 
         fetch('/TALaboratory/SaveEditedItem', {
             method: 'POST',
@@ -313,7 +335,7 @@
             body: JSON.stringify(data)
         })
         .then(response => {
-            console.log("Server response:", response); // Debug: Log the response
+            console.log("Server response:", response);
 
             if (!response.ok) {
                 return response.text().then(text => {
@@ -326,7 +348,7 @@
             console.log("Success:", result);
             alert("Item updated successfully!");
             $('#editModal').modal('hide');
-            fetchTableData(); // Refresh the table
+            fetchTableData(); 
         })
         .catch(error => {
             console.error("Error:", error);
@@ -334,12 +356,112 @@
         });
     });
 
-    // 4. Initialize everything when the document loads
     document.addEventListener("DOMContentLoaded", function() {
-        // If there's already a Track No selected, load its data
         const trackNoSelect = document.getElementById("selectedTrackNo");
         if (trackNoSelect.value) {
             fetchTableData();
         }
     });
+
+    //Repair
+        function openRepairModal(item) {
+        console.log("Opening repair modal for item:", item);
+
+        // Populate the repair modal fields
+        document.getElementById("id").value = getPropertyCaseInsensitive(item, "id");
+        document.getElementById("ctn").value = getPropertyCaseInsensitive(item, "ctn");
+        document.getElementById("particular").value = getPropertyCaseInsensitive(item, "particular");
+        document.getElementById("brand").value = getPropertyCaseInsensitive(item, "brand");
+        document.getElementById("serialStickerNumber").value = getPropertyCaseInsensitive(item, "serialStickerNumber");
+        document.getElementById("status").value = getPropertyCaseInsensitive(item, "status");
+
+        // Handle optional fields
+        const locationField = document.getElementById("location");
+        if (locationField) {
+            const hasLocation = Object.keys(item).some(key => key.toLowerCase() === "location");
+            locationField.value = hasLocation ? getPropertyCaseInsensitive(item, "location") : "";
+        }
+
+        const dateField = document.getElementById("dateOfAcquisition");
+        if (dateField) {
+            const hasDate = Object.keys(item).some(key => key.toLowerCase() === "dateofacquisition");
+            dateField.value = hasDate ? getPropertyCaseInsensitive(item, "dateOfAcquisition") : "";
+        }
+
+        // Clear description field
+        document.getElementById("description").value = "";
+
+        // Show the modal
+        $('#repairModal').modal('show');
+    }
+
+    // Handle Save Repair Button Click
+    document.getElementById("saveRepairBtn").addEventListener("click", function () {
+        const trackNo = document.getElementById("selectedTrackNo").value;
+        const id = document.getElementById("id").value;
+        const description = document.getElementById("description").value;
+
+        // Validation checks
+        if (!trackNo) {
+            alert("Track No is required");
+            return;
+        }
+
+        if (!id) {
+            alert("Item ID is missing");
+            return;
+        }
+
+        if (!description.trim()) {
+            alert("Please provide a description of the damage");
+            return;
+        }
+
+        // Prepare data to send to server
+        const data = {
+            ItemId: parseInt(id), 
+            TrackNo: trackNo,
+            Description: description,
+            Status: "Pending", // Status set to Pending
+            CTN: document.getElementById("ctn").value,
+            Particular: document.getElementById("particular").value,
+            Brand: document.getElementById("brand").value,
+            SerialStickerNumber: document.getElementById("serialStickerNumber").value
+        };
+
+        // If location field exists, include it
+        const locationField = document.getElementById("location");
+        if (locationField && locationField.value) {
+            data.Location = locationField.value;
+        }
+
+        console.log("Sending repair request data:", data);
+
+        fetch('/TALaboratory/RequestRepair', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || `Server returned ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log("Success:", result);
+            alert("Repair request submitted successfully!");
+            $('#repairModal').modal('hide');
+            fetchTableData(); 
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to submit repair request: " + error.message);
+        });
+    });
+
 </script>
