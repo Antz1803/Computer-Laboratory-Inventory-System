@@ -35,7 +35,9 @@
 
                     <div class="mt-4">
                         <h4 class="mb-3 text-center">Track Details</h4>
-                        <button onclick="printTable()" class="btn btn-info" style="margin-top:20px">Print Table</button>
+                        <button onclick="printTable()" class="btn btn-info">
+                            <img src="@Url.Content("~/Images/print.svg")" alt="Print Icon" style="vertical-align: middle;height: 20px;">
+                        </button>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover table-bordered text-center" id="trackTable">
                                 <thead class="table-dark">
