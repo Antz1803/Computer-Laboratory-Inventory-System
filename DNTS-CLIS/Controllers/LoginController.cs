@@ -85,6 +85,7 @@ namespace DNTS_CLIS.Controllers
                FirstName NVARCHAR(255),
                         LastName NVARCHAR(255),
                         Email NVARCHAR(255),
+                        Status NVARCHAR(50),
                         Role NVARCHAR(255),
   AssignLaboratory NVARCHAR(255),
                         Username NVARCHAR(255),

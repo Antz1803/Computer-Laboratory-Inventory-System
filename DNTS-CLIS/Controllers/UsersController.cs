@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using DNTS_CLIS.Data;
+using DNTS_CLIS.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using DNTS_CLIS.Data;
-using DNTS_CLIS.Models;
 
 namespace Clis5.Controllers
 {
@@ -22,7 +18,9 @@ namespace Clis5.Controllers
         // GET: Users
         public async Task<IActionResult> Index()
         {
-            return View(await _context.User.ToListAsync());
+            var users = await _context.User.ToListAsync();
+            return View(users);
+
         }
 
         // GET: Users/Details/5
@@ -64,7 +62,7 @@ namespace Clis5.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UserId,FirstName,LastName,Email,Role,AssignLaboratory,Username,Password")] User user)
+        public async Task<IActionResult> Create([Bind("UserId,FirstName,LastName,Email,Status,Role,AssignLaboratory,Username,Password")] User user)
         {
             if (user.Role == "Supervisor")
             {
@@ -166,10 +164,12 @@ namespace Clis5.Controllers
             var user = await _context.User.FindAsync(id);
             if (user != null)
             {
-                _context.User.Remove(user);
+                // Soft delete: mark as Inactive
+                user.Status = "Inactive";
+                _context.Update(user);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

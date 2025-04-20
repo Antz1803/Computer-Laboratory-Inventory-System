@@ -33,9 +33,9 @@
                         </div>
                     </div>
 
-                    <!-- Table to display data -->
                     <div class="mt-4">
                         <h4 class="mb-3 text-center">Track Details</h4>
+                        <button onclick="printTable()" class="btn btn-info" style="margin-top:20px">Print Table</button>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover table-bordered text-center" id="trackTable">
                                 <thead class="table-dark">
@@ -46,9 +46,8 @@
                         </div>
                     </div>
 
-                    <div class="mt-3 d-flex justify-content-end">
                         <a href="/TechnicalAssistantView/Index" class="btn btn-secondary">Back to Assign Laboratory</a>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -151,4 +150,55 @@
                 });
         }
     }
+
+        function printTable() {
+        const printContents = document.getElementById("trackTable").cloneNode(true); 
+        const originalBody = document.body;
+        const printBody = document.createElement('body');
+        const printHeader = document.createElement('div');
+        const logoContainer = document.createElement('div');
+        const logoImage = document.createElement('img'); 
+        const titleLabContainer = document.createElement('div');
+        const printTitle = document.createElement('div');
+        const timestamp = document.createElement('div');
+        const selectedLaboratory = document.getElementById("selectedLaboratory").value;
+        const laboratoryText = selectedLaboratory ? ` - ${selectedLaboratory.toUpperCase()}` : '';
+
+        const imageUrl = '@Url.Content("~/Images/dnts-act.png")';
+        logoImage.src = imageUrl;
+        logoImage.style.width = '700px';
+        logoImage.style.height = '85px'; 
+
+        printHeader.style.display = 'flex';
+        printHeader.style.justifyContent = 'space-between';
+        printHeader.style.alignItems = 'center';
+        printHeader.style.marginBottom = '10px';
+        printHeader.style.fontFamily = 'Arial, sans-serif';
+        printHeader.style.width = '100%';
+
+        logoContainer.style.textAlign = 'left';
+        logoContainer.style.width = 'auto';
+        logoContainer.appendChild(logoImage); 
+
+        titleLabContainer.style.textAlign = 'right';
+
+        printTitle.style.fontSize = '1.2em';
+        printTitle.style.fontWeight = 'bold';
+        printTitle.style.marginBottom = '5px';
+        printTitle.textContent = `${laboratoryText}`;
+
+        titleLabContainer.appendChild(printTitle);
+        printHeader.appendChild(logoContainer);
+        printHeader.appendChild(titleLabContainer);
+
+        printBody.appendChild(printHeader);
+        printBody.appendChild(printContents);
+
+        document.body = printBody;
+
+        window.print();
+
+        document.body = originalBody;
+    }
+
 </script>

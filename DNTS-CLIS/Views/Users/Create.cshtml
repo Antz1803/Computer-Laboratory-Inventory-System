@@ -52,6 +52,13 @@
                         <input asp-for="Email" class="form-control" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
+      
+                    <div class="col-md-6" style="margin-top:55px;">
+                        <input type="checkbox" name="Status" value="Active" id="status" required />
+                        <label for="status"> is Active</label>
+                        <span class="text-danger" asp-validation-for="Status"></span>
+                    </div>
+
 
                     <div class="col-md-6">
                         <label for="roleDropdown" class="form-label">Select Role</label>
