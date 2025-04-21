@@ -137,6 +137,10 @@ namespace Clis5.Controllers
             }
             return View(user);
         }
+        private bool UserExists(int id)
+        {
+            return _context.User.Any(e => e.UserId == id);
+        }
 
         // GET: Users/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -173,9 +177,6 @@ namespace Clis5.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UserExists(int id)
-        {
-            return _context.User.Any(e => e.UserId == id);
-        }
+     
     }
 }

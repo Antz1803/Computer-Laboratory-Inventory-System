@@ -91,8 +91,8 @@ namespace DNTS_CLIS.Controllers
                     if (columnNames.Any(c => c.Equals("BRAND", StringComparison.OrdinalIgnoreCase)))
                         dict["Brand"] = row[columnNames.First(c => c.Equals("BRAND", StringComparison.OrdinalIgnoreCase))].ToString();
 
-                    if (columnNames.Any(c => c.Equals("SERIALRIGHTSTICKERNO", StringComparison.OrdinalIgnoreCase)))
-                        dict["SerialStickerNumber"] = row[columnNames.First(c => c.Equals("SERIALRIGHTSTICKERNO", StringComparison.OrdinalIgnoreCase))].ToString();
+                    if (columnNames.Any(c => c.Equals("SERIALSTICKERNO", StringComparison.OrdinalIgnoreCase)))
+                        dict["SerialStickerNumber"] = row[columnNames.First(c => c.Equals("SERIALSTICKERNO", StringComparison.OrdinalIgnoreCase))].ToString();
 
                     if (columnNames.Any(c => c.Equals("STATUS", StringComparison.OrdinalIgnoreCase)))
                         dict["Status"] = row[columnNames.First(c => c.Equals("STATUS", StringComparison.OrdinalIgnoreCase))].ToString();
@@ -265,9 +265,9 @@ namespace DNTS_CLIS.Controllers
                     string safeTableName = model.TrackNo.Replace("'", "''");
 
                     string updateQuery = $@"
-                UPDATE [{safeTableName}]
-                SET STATUS = 'Pending'
-                WHERE ID = @Id";
+                        UPDATE [{safeTableName}]
+                        SET STATUS = 'Pending'
+                        WHERE ID = @Id";
 
                     using (var cmd = new SqlCommand(updateQuery, conn))
                     {
@@ -276,18 +276,18 @@ namespace DNTS_CLIS.Controllers
                     }
 
                     string insertQuery = @"
-                INSERT INTO RepairRequests (
-                    ItemId, TrackNo, CTN, Particular, Brand, 
-                    SerialStickerNumber, Description, Status, 
-                    RequestDate, RequestedBy, Location)
-                VALUES (
-                    @ItemId, @TrackNo, @CTN, @Particular, @Brand, 
-                    @SerialStickerNumber, @Description, @Status, 
-                    @RequestDate, @RequestedBy, @Location)";
+                        INSERT INTO RepairRequests (
+                            ItemId, TrackNo, CTN, Particular, Brand,
+                            SerialStickerNumber, Description, Status,
+                            RequestDate, RequestedBy, Location)
+                        VALUES (
+                            @ItemId, @TrackNo, @CTN, @Particular, @Brand,
+                            @SerialStickerNumber, @Description, @Status,
+                            @RequestDate, @RequestedBy, @Location)";
 
                     using (var cmd = new SqlCommand(insertQuery, conn))
                     {
-                        cmd.Parameters.AddWithValue("@ItemId", model.ItemId); 
+                        cmd.Parameters.AddWithValue("@ItemId", model.ItemId);
                         cmd.Parameters.AddWithValue("@TrackNo", model.TrackNo);
                         cmd.Parameters.AddWithValue("@CTN", (object)model.CTN ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Particular", (object)model.Particular ?? DBNull.Value);
@@ -311,113 +311,6 @@ namespace DNTS_CLIS.Controllers
                 return StatusCode(500, new { success = false, message = $"Internal server error: {ex.Message}" });
             }
         }
-
-
-        public IActionResult RepairRequests()
-        {
-            // Check if user is authorized
-            string username = HttpContext.Session.GetString("Username");
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                return RedirectToAction("Index", "Login");
-            }
-
-            // Get all pending repair requests
-            var pendingRequests = GetPendingRepairRequests();
-
-            return View(pendingRequests);
-        }
-
-        private List<RepairRequestModel> GetPendingRepairRequests()
-        {
-            var requests = new List<RepairRequestModel>();
-
-            using (var conn = new SqlConnection(_connectionString))
-            {
-                conn.Open();
-
-                string query = @"
-            SELECT * FROM RepairRequests 
-            WHERE Status IN ('Pending', 'Repairing')
-            ORDER BY RequestDate DESC";
-
-                using (var cmd = new SqlCommand(query, conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            requests.Add(new RepairRequestModel
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                ItemId = reader.GetInt32(reader.GetOrdinal("ItemId")),
-                                TrackNo = reader.GetString(reader.GetOrdinal("TrackNo")),
-                                CTN = reader["CTN"] as string,
-                                Particular = reader["Particular"] as string,
-                                Brand = reader["Brand"] as string,
-                                SerialStickerNumber = reader["SerialStickerNumber"] as string,
-                                Description = reader["Description"] as string,
-                                Status = reader["Status"] as string,
-                                RequestDate = reader.GetDateTime(reader.GetOrdinal("RequestDate")),
-                                RequestedBy = reader["RequestedBy"] as string,
-                                Location = reader["Location"] as string
-                            });
-                        }
-                    }
-                }
-            }
-
-            return requests;
-        }
-
-        [HttpGet]
-        public JsonResult GetRepairRequest(int id)
-        {
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-
-                    string query = "SELECT * FROM RepairRequests WHERE Id = @Id";
-
-                    using (var cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@Id", id);
-
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                var request = new
-                                {
-                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                    ItemId = reader.GetInt32(reader.GetOrdinal("ItemId")),
-                                    TrackNo = reader["TrackNo"] as string,
-                                    CTN = reader["CTN"] as string,
-                                    Particular = reader["Particular"] as string,
-                                    Brand = reader["Brand"] as string,
-                                    SerialStickerNumber = reader["SerialStickerNumber"] as string,
-                                    Description = reader["Description"] as string,
-                                    Status = reader["Status"] as string,
-                                    RequestDate = reader.GetDateTime(reader.GetOrdinal("RequestDate")),
-                                    RequestedBy = reader["RequestedBy"] as string,
-                                    Location = reader["Location"] as string
-                                };
-
-                                return Json(request);
-                            }
-                        }
-                    }
-
-                    Response.StatusCode = 404;
-                    return Json(new { error = "Repair request not found" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { error = ex.Message });
-            }
-        }
     }
 }
+
