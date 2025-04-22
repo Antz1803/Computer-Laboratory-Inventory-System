@@ -189,7 +189,7 @@
 
                     // Get all possible columns from the first data item
                     const firstItem = data[0];
-                    const allColumns = ["CTN", "Particular", "Brand", "SerialStickerNumber", "Status"];
+                    const allColumns = ["CTN", "Particular", "Brand", "serialstickerno", "Status"]; 
 
                     // Only add Location if it exists in the data
                     if (firstItem.hasOwnProperty("Location")) {
@@ -203,7 +203,7 @@
                     allColumns.forEach(column => {
                         let th = document.createElement("th");
                         // Format the display name ("SerialStickerNumber" -> "Serial Sticker Number")
-                        if (column === "SerialStickerNumber") {
+                        if (column === "serialstickerno") {
                             th.textContent = "Serial Sticker Number";
                         } else {
                             th.textContent = column;
@@ -212,7 +212,7 @@
                     });
 
                     let actionsHeader = document.createElement("th");
-                    actionsHeader.textContent = "Actions";
+                    actionsHeader.textContent = "";
                     headerRow.appendChild(actionsHeader);
 
                     // Create table rows for each data item
@@ -269,7 +269,7 @@
         document.getElementById("editCTN").value = getPropertyCaseInsensitive(item, "ctn");
         document.getElementById("editParticular").value = getPropertyCaseInsensitive(item, "particular");
         document.getElementById("editBrand").value = getPropertyCaseInsensitive(item, "brand");
-        document.getElementById("editSerialStickerNumber").value = getPropertyCaseInsensitive(item, "serialStickerNumber");
+        document.getElementById("editSerialStickerNumber").value = getPropertyCaseInsensitive(item, "serialstickerno");
         document.getElementById("editStatus").value = getPropertyCaseInsensitive(item, "status");
 
         // Only try to set the Location if the edit field exists
@@ -379,7 +379,7 @@
         document.getElementById("ctn").value = getPropertyCaseInsensitive(item, "ctn");
         document.getElementById("particular").value = getPropertyCaseInsensitive(item, "particular");
         document.getElementById("brand").value = getPropertyCaseInsensitive(item, "brand");
-        document.getElementById("serialStickerNumber").value = getPropertyCaseInsensitive(item, "serialStickerNumber");
+        document.getElementById("serialStickerNumber").value = getPropertyCaseInsensitive(item, "serialstickerno");
         document.getElementById("status").value = getPropertyCaseInsensitive(item, "status");
 
         // Handle optional fields

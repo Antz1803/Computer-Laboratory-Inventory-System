@@ -92,7 +92,7 @@ namespace DNTS_CLIS.Controllers
                         dict["Brand"] = row[columnNames.First(c => c.Equals("BRAND", StringComparison.OrdinalIgnoreCase))].ToString();
 
                     if (columnNames.Any(c => c.Equals("SERIALSTICKERNO", StringComparison.OrdinalIgnoreCase)))
-                        dict["SerialStickerNumber"] = row[columnNames.First(c => c.Equals("SERIALSTICKERNO", StringComparison.OrdinalIgnoreCase))].ToString();
+                        dict["serialstickerno"] = row[columnNames.First(c => c.Equals("SERIALSTICKERNO", StringComparison.OrdinalIgnoreCase))].ToString();
 
                     if (columnNames.Any(c => c.Equals("STATUS", StringComparison.OrdinalIgnoreCase)))
                         dict["Status"] = row[columnNames.First(c => c.Equals("STATUS", StringComparison.OrdinalIgnoreCase))].ToString();
@@ -175,9 +175,9 @@ namespace DNTS_CLIS.Controllers
                         parameters.Add(new SqlParameter("@Brand", (object)model.Brand ?? DBNull.Value));
                     }
 
-                    if (columnNames.Any(c => c.Equals("SERIALRIGHTSTICKERNO", StringComparison.OrdinalIgnoreCase)))
+                    if (columnNames.Any(c => c.Equals("SERIALSTICKERNO", StringComparison.OrdinalIgnoreCase)))
                     {
-                        setStatements.Add("SERIALRIGHTSTICKERNO = @SerialStickerNumber");
+                        setStatements.Add("SERIALSTICKERNO = @SerialStickerNumber");
                         parameters.Add(new SqlParameter("@SerialStickerNumber", (object)model.SerialStickerNumber ?? DBNull.Value));
                     }
 

@@ -60,10 +60,23 @@ namespace DNTS_CLIS.Controllers
         public async Task<IActionResult> Index()
         {
             var laboratories = await _context.Laboratories.ToListAsync();
-            ViewBag.Laboratories = laboratories ?? new List<Laboratories>();
+
+            var sortedLaboratories = laboratories
+                .OrderBy(l => ExtractLabNumber(l.LaboratoryName))
+                .ThenBy(l => l.LaboratoryName)
+                .ToList();
+
+            ViewBag.Laboratories = sortedLaboratories;
 
             return View();
         }
+
+        private int ExtractLabNumber(string labName)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(labName ?? "", @"\d+");
+            return match.Success ? int.Parse(match.Value) : int.MaxValue;
+        }
+
         [HttpGet]
         public async Task<JsonResult> GetCTNsByAssignedLaboratory(string laboratoryName)
         {

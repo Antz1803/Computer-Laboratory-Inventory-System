@@ -44,7 +44,15 @@ namespace DNTS_CLIS.Controllers
             using var reader = cmd.ExecuteReader();
             while (reader.Read()) laboratories.Add(reader.GetString(0));
 
-            return laboratories;
+            return laboratories
+            .OrderBy(lab => ExtractLabNumber(lab))
+            .ThenBy(lab => lab)
+            .ToList();
+        }
+        private int ExtractLabNumber(string labName)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(labName, @"\d+");
+            return match.Success ? int.Parse(match.Value) : int.MaxValue;
         }
         public IActionResult AssignHistory()
         {

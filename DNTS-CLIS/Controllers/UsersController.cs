@@ -100,6 +100,7 @@ namespace Clis5.Controllers
             {
                 return NotFound();
             }
+            ViewBag.Laboratories = _context.Laboratories.ToList() ?? new List<Laboratories>();
             return View(user);
         }
 
@@ -115,27 +116,29 @@ namespace Clis5.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            // Get the existing user to preserve the Status
+            var existingUser = await _context.User.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == id);
+            if (existingUser == null)
             {
-                try
-                {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.UserId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            return View(user);
+
+            // Preserve the Status value
+            user.Status = existingUser.Status;
+
+            // Handle Supervisor role
+            if (user.Role == "Supervisor")
+            {
+                user.AssignLaboratory = "N/A";
+            }
+
+            // Force ModelState to be valid since we're manually handling specific fields
+            ModelState.Clear();
+
+            // Update the entity
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
         private bool UserExists(int id)
         {

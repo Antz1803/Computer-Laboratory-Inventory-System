@@ -164,38 +164,35 @@ namespace DNTS_CLIS.Controllers
                         }
                     }
 
-                    // Define status updates for both tables
+                    // Define status updates
                     string repairRequestsStatus = "";
                     string talabStatus = "";
 
                     if (action == "accept")
                     {
                         repairRequestsStatus = "Repairing";
-                        talabStatus = "REPAIRING"; 
+                        talabStatus = "REPAIRING";
 
-                        // Only allow this action if current status is Pending
                         if (currentStatus != "Pending")
                         {
                             return Json(new { success = false, message = "Can only accept requests with 'Pending' status." });
                         }
                     }
-                    else if (action == "decline")
+                    else if (action == "uncomplete")
                     {
-                        repairRequestsStatus = "Declined";
-                        talabStatus = "FUNCTIONAL"; 
+                        repairRequestsStatus = "Uncompleted";
+                        talabStatus = "DEFECTIVE";
 
-                        // Only allow this action if current status is Pending
-                        if (currentStatus != "Pending")
+                        if (currentStatus != "Repairing")
                         {
-                            return Json(new { success = false, message = "Can only decline requests with 'Pending' status." });
+                            return Json(new { success = false, message = "Can only mark as uncompleted if status is 'Repairing'." });
                         }
                     }
                     else if (action == "complete")
                     {
                         repairRequestsStatus = "Completed";
-                        talabStatus = "FUNCTIONAL"; 
+                        talabStatus = "FUNCTIONAL";
 
-                        // Only allow this action if current status is Repairing
                         if (currentStatus != "Repairing")
                         {
                             return Json(new { success = false, message = "Can only complete requests with 'Repairing' status." });
@@ -206,15 +203,13 @@ namespace DNTS_CLIS.Controllers
                         return Json(new { success = false, message = $"Invalid action: '{action}'." });
                     }
 
-                    // Begin transaction to ensure both updates succeed or fail together
                     using (var transaction = conn.BeginTransaction())
                     {
                         try
                         {
-                            // Update status in RepairRequests table
                             string updateRepairRequestQuery = @"UPDATE RepairRequests 
-                                                       SET Status = @Status 
-                                                       WHERE Id = @Id";
+                                               SET Status = @Status 
+                                               WHERE Id = @Id";
 
                             using (var cmd = new SqlCommand(updateRepairRequestQuery, conn, transaction))
                             {
@@ -229,10 +224,8 @@ namespace DNTS_CLIS.Controllers
                                 }
                             }
 
-                            // Update status in the original table (e.g., TrackNo_1665_MONITOR_TA)
                             string safeTableName = trackNo.Replace("'", "''");
 
-                            // Check if STATUS column exists in this table
                             bool statusColumnExists = false;
                             using (var cmd = new SqlCommand($"SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{safeTableName}' AND COLUMN_NAME = 'STATUS'", conn, transaction))
                             {
@@ -243,8 +236,8 @@ namespace DNTS_CLIS.Controllers
                             if (statusColumnExists)
                             {
                                 string updateOriginalTableQuery = $@"UPDATE [{safeTableName}]
-                                                          SET STATUS = @Status
-                                                          WHERE ID = @ItemId";
+                                                  SET STATUS = @Status
+                                                  WHERE ID = @ItemId";
 
                                 using (var cmd = new SqlCommand(updateOriginalTableQuery, conn, transaction))
                                 {
@@ -264,7 +257,6 @@ namespace DNTS_CLIS.Controllers
                         }
                         catch (Exception ex)
                         {
-                            // Roll back transaction if there's an error
                             transaction.Rollback();
                             System.Diagnostics.Debug.WriteLine($"Transaction error: {ex.Message}");
                             return Json(new { success = false, message = $"Error updating status: {ex.Message}" });

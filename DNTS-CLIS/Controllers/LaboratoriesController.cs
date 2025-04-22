@@ -22,8 +22,22 @@ namespace DNTS_CLIS.Controllers
         // GET: Laboratories
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Laboratories.ToListAsync());
+            var labs = await _context.Laboratories.ToListAsync();
+
+            var sortedLabs = labs
+                .OrderBy(l => ExtractLabNumber(l.LaboratoryName))
+                .ThenBy(l => l.LaboratoryName)
+                .ToList();
+
+            return View(sortedLabs);
         }
+
+        private int ExtractLabNumber(string labName)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(labName, @"\d+");
+            return match.Success ? int.Parse(match.Value) : int.MaxValue;
+        }
+
 
         // GET: Laboratories/Details/5
         public async Task<IActionResult> Details(int? id)
