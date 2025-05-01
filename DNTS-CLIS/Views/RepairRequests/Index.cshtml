@@ -68,8 +68,8 @@
                                             <button class="btn btn-sm btn-primary" onclick="processRequest('@request.Id', 'complete')">
                                                 <i class="fas fa-check-circle"></i> Complete
                                             </button>
-                                            <button class="btn btn-sm btn-danger" onclick="processRequest('@request.Id', 'uncomplete')">
-                                                <i class="fas fa-times"></i> Uncomplete
+                                            <button class="btn btn-sm btn-danger" onclick="processRequest('@request.Id', 'incomplete')">
+                                                <i class="fas fa-times"></i> Incomplete
                                             </button>
                                         }
                                     </td>
@@ -220,7 +220,7 @@
 
         // Function to process a request (accept, decline, complete)
        function processRequest(id, action) {
-        let actionText = action === 'accept' ? 'accept' : (action === 'uncomplete' ? 'uncomplete' : 'mark as complete');
+        let actionText = action === 'accept' ? 'accept' : (action === 'incomplete' ? 'incomplete' : 'mark as complete');
 
         if (!confirm(`Are you sure you want to ${actionText} this repair request?`)) {
             return;

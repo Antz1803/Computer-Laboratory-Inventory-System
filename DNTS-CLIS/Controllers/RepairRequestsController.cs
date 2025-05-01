@@ -178,9 +178,9 @@ namespace DNTS_CLIS.Controllers
                             return Json(new { success = false, message = "Can only accept requests with 'Pending' status." });
                         }
                     }
-                    else if (action == "uncomplete")
+                    else if (action == "incomplete")
                     {
-                        repairRequestsStatus = "Uncompleted";
+                        repairRequestsStatus = "Incompleted";
                         talabStatus = "DEFECTIVE";
 
                         if (currentStatus != "Repairing")

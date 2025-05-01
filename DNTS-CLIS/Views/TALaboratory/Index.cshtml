@@ -26,7 +26,11 @@
         }
     </select>
 </div>
-
+<div>
+    <button id="addItemBtn" class="btn btn-success" onclick="openAddModal()">
+        <i class="fas fa-plus"></i> Add New Item
+    </button>
+</div>
 <!-- Table to display data -->
 <div class="mt-4">
     <h4 class="mb-3">Track Details</h4>
@@ -157,6 +161,66 @@
 
                 <button type="button" class="btn btn-success" id="saveRepairBtn">
                     <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Adding New Item -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content shadow-lg rounded">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle"></i> Add New Item
+                </h5>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="addCTN">CTN:</label>
+                            <input type="text" id="addCTN" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addParticular">Particular:</label>
+                            <input type="text" id="addParticular" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="addBrand">Brand:</label>
+                            <input type="text" id="addBrand" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addSerialStickerNumber">Serial Sticker Number:</label>
+                            <input type="text" id="addSerialStickerNumber" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="addStatus">Status:</label>
+                            <select id="addStatus" class="form-control">
+                                <option value="Available">Available</option>
+                                <option value="In Use">In Use</option>
+                                <option value="Under Repair">Under Repair</option>
+                                <option value="Out of Service">Out of Service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addLocation">Location:</label>
+                            <input type="text" id="addLocation" class="form-control">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="$('#addModal').modal('hide');">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-success" id="saveAddBtn">
+                    <i class="fas fa-save"></i> Save Item
                 </button>
             </div>
         </div>
@@ -471,4 +535,82 @@
         });
     });
 
+    // Add Item
+      function openAddModal() {
+        // Check if track number is selected
+        const trackNo = document.getElementById("selectedTrackNo").value;
+        if (!trackNo) {
+            alert("Please select a Track No first");
+            return;
+        }
+
+        // Clear the form fields
+        document.getElementById("addForm").reset();
+
+        // Show the modal
+        $('#addModal').modal('show');
+    }
+
+    // Handle Save New Item Button Click
+    document.getElementById("saveAddBtn").addEventListener("click", function() {
+        const trackNo = document.getElementById("selectedTrackNo").value;
+
+        if (!trackNo) {
+            alert("Track No is required");
+            return;
+        }
+
+        // Validate required fields
+        const ctn = document.getElementById("addCTN").value;
+        const particular = document.getElementById("addParticular").value;
+
+        if (!ctn.trim()) {
+            alert("CTN is required");
+            return;
+        }
+
+        if (!particular.trim()) {
+            alert("Particular is required");
+            return;
+        }
+
+        // Prepare data to send to server
+        const data = {
+            TrackNo: trackNo,
+            CTN: ctn,
+            Particular: particular,
+            Brand: document.getElementById("addBrand").value,
+            SerialStickerNumber: document.getElementById("addSerialStickerNumber").value,
+            Status: document.getElementById("addStatus").value,
+            Location: document.getElementById("addLocation").value
+        };
+
+        console.log("Sending new item data:", data);
+
+        fetch('/TALaboratory/AddNewItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || `Server returned ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log("Success:", result);
+            alert("Item added successfully!");
+            $('#addModal').modal('hide');
+            fetchTableData(); // Refresh the table
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to add item: " + error.message);
+        });
+    });
 </script>
