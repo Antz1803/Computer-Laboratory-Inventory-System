@@ -62,7 +62,7 @@ namespace Clis5.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UserId,FirstName,LastName,Email,Status,Role,AssignLaboratory,Username,Password")] User user)
+        public async Task<IActionResult> Create([Bind("UserId,FirstName,LastName,BirthDate,Age,Email,Status,Role,AssignLaboratory,Username,Password")] User user)
         {
             if (user.Role == "Supervisor")
             {

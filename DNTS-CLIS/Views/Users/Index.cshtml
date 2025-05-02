@@ -5,7 +5,7 @@
     ViewData["Title"] = "Index";
 }
 
-<div class="container-fluid mt-4">
+<div class="container-fluid mt-4" style="width:1250px;margin-left:-70px;">
     <div class="card shadow-lg border-0 rounded-lg">
         <div class="card-header bg-primary text-white text-center">
             <h2 class="mb-0" style="font-weight: bold;">USERS</h2>
@@ -31,6 +31,12 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th style="width:120px;">
+                @Html.DisplayNameFor(model => model.BirthDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Age)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Status)
@@ -63,6 +69,12 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Email)
             </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BirthDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Age)
+            </td>
              <td>
                 @Html.DisplayFor(modelItem => item.Status)
             </td>
@@ -78,7 +90,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Password)
             </td>
-            <td style="width:150px;">
+            <td style="width:250px;">
                                     <a asp-action="Edit" asp-route-id="@item.UserId"><img src="~/Images/edit.svg" width="29" height="auto" /></a> |
                                     <a asp-action="Details" asp-route-id="@item.UserId"><img src="~/Images/details.svg" width="29" height="auto" /></a> |
                                     <a asp-action="Delete" asp-route-id="@item.UserId"><img src="~/Images/trash.svg" width="29" height="auto" /></a>
@@ -107,6 +119,8 @@
                                 <th>First Name</th>
                                 <th>Last Name</th>
                                 <th>Email</th>
+                                <th>Birth Date</th>
+                                <th>Age</th>
                                 <th>Status</th>
                                 <th>Username</th>
                                 <th>Role</th>
@@ -120,6 +134,8 @@
                                     <td>@item.FirstName</td>
                                     <td>@item.LastName</td>
                                     <td>@item.Email</td>
+                                    <td>@item.BirthDate</td>
+                                    <td>@item.Age</td>
                                     <td>@item.Status</td>
                                     <td>@item.Username</td>
                                     <td>@item.Role</td>

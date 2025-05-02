@@ -66,6 +66,19 @@
                 <input asp-for="Email" class="form-control" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
+
+            <div class="col-md-6">
+                <label asp-for="BirthDate" class="form-label">Birth Date</label>
+                <input asp-for="BirthDate" type="date" class="form-control" id="birthDate" />
+                <span asp-validation-for="BirthDate" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Age" class="form-label">Age</label>
+                <input asp-for="Age" class="form-control" id="age" readonly />
+                <span asp-validation-for="Age" class="text-danger"></span>
+            </div>
+
             <input type="hidden" asp-for="Status" />
             <div class="form-group">
                 <label asp-for="Username" class="control-label"></label>
@@ -122,6 +135,24 @@
 
             document.getElementById("roleSelect").addEventListener("change", toggleLaboratoryVisibility);
         });
+
+         document.getElementById("birthDate").addEventListener("change", function () {
+                            const birthDate = new Date(this.value);
+                            const today = new Date();
+
+                            let age = today.getFullYear() - birthDate.getFullYear();
+                            const m = today.getMonth() - birthDate.getMonth();
+
+                            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                                age--;
+                            }
+
+                            if (!isNaN(age)) {
+                                document.getElementById("age").value = age;
+                            } else {
+                                document.getElementById("age").value = "";
+                            }
+                        });
     </script>
 
     @await Html.PartialAsync("_ValidationScriptsPartial")

@@ -48,6 +48,18 @@
                     </div>
 
                     <div class="col-md-6">
+                        <label asp-for="BirthDate" class="form-label">Birth Date</label>
+                        <input asp-for="BirthDate" type="date" class="form-control" id="birthDate" />
+                        <span asp-validation-for="BirthDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Age" class="form-label">Age</label>
+                        <input asp-for="Age" class="form-control" id="age" readonly />
+                        <span asp-validation-for="Age" class="text-danger"></span>
+                    </div>
+           
+                    <div class="col-md-6">
                         <label asp-for="Email" class="form-label">Email</label>
                         <input asp-for="Email" class="form-control" />
                         <span asp-validation-for="Email" class="text-danger"></span>
@@ -86,7 +98,7 @@
 
                     <div class="col-md-6">
                         <label asp-for="Password" class="form-label">Password</label>
-                        <input asp-for="Password" type="password" class="form-control" />
+                        <input asp-for="Password" type="password" class="form-control" maxlength="8"/>
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
                 </div>
@@ -129,6 +141,24 @@
 
             toggleLaboratoryDropdown();
         });
+        
+                        document.getElementById("birthDate").addEventListener("change", function () {
+                            const birthDate = new Date(this.value);
+                            const today = new Date();
+
+                            let age = today.getFullYear() - birthDate.getFullYear();
+                            const m = today.getMonth() - birthDate.getMonth();
+
+                            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                                age--;
+                            }
+
+                            if (!isNaN(age)) {
+                                document.getElementById("age").value = age;
+                            } else {
+                                document.getElementById("age").value = "";
+                            }
+                        });
     </script>
 
     @await Html.PartialAsync("_ValidationScriptsPartial")
