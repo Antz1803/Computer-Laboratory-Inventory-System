@@ -85,7 +85,7 @@ namespace Clis5.Controllers
     {
         new SelectListItem { Value = "Supervisor", Text = "Supervisor" },
         new SelectListItem { Value = "Property Custodian", Text = "Property Custodian" },
-        new SelectListItem { Value = "Technical", Text = "Technical" }
+        new SelectListItem { Value = "Technical Assistant", Text = "Technical Assistant" }
     };
 
             return View(user);
