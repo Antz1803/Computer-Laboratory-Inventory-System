@@ -50,6 +50,7 @@ namespace Clis5.Controllers
             var roles = new List<SelectListItem>
     {
         new SelectListItem { Value = "Supervisor", Text = "Supervisor" },
+        new SelectListItem { Value = "Property Custodian", Text = "Property Custodian" },
         new SelectListItem { Value = "Technical Assistant", Text = "Technical Assistant" }
     };
 
@@ -68,7 +69,10 @@ namespace Clis5.Controllers
             {
                 user.AssignLaboratory = "N/A";
             }
-
+            else if (user.Role == "Property Custodian")
+            {
+                user.AssignLaboratory = "N/A";
+            }
             if (ModelState.IsValid)
             {
                 _context.Add(user);
@@ -80,6 +84,7 @@ namespace Clis5.Controllers
             ViewBag.Roles = new List<SelectListItem>
     {
         new SelectListItem { Value = "Supervisor", Text = "Supervisor" },
+        new SelectListItem { Value = "Property Custodian", Text = "Property Custodian" },
         new SelectListItem { Value = "Technical", Text = "Technical" }
     };
 
@@ -128,6 +133,10 @@ namespace Clis5.Controllers
 
             // Handle Supervisor role
             if (user.Role == "Supervisor")
+            {
+                user.AssignLaboratory = "N/A";
+            }
+            else if(user.Role == "Property Custodian")
             {
                 user.AssignLaboratory = "N/A";
             }

@@ -127,7 +127,13 @@
                     $("#labDropdown").hide();
                     $("#AssignLaboratory").val("N/A");
                     $("#hiddenAssignLaboratory").val("N/A");
-                } else {
+                }
+                else if(selectedRole === "Property Custodian"){
+                         $("#labDropdown").hide();
+                         $("#AssignLaboratory").val("N/A");
+                         $("#hiddenAssignLaboratory").val("N/A");
+                }
+                else {
                     $("#labDropdown").show();
                     $("#AssignLaboratory").val("");
                     $("#hiddenAssignLaboratory").val($("#AssignLaboratory").val());
