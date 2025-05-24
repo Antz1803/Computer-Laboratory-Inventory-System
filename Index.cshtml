@@ -1,0 +1,217 @@
+﻿@using System.Data
+@model DataTable
+@{
+    Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
+    ViewData["Title"] = "ASSIGN LABORATORY";
+    var selectedTrackNo = ViewBag.SelectedTrackNo as string;
+    var functionalRecords = ViewBag.FunctionalRecords as System.Data.DataTable;
+    var defectiveRecords = ViewBag.DefectiveRecords as System.Data.DataTable;
+    var unknownRecords = ViewBag.UnknownRecords as System.Data.DataTable;
+}
+@{
+    string? dateOfAcquisitionValue = "Not Available";
+
+    System.Data.DataTable[] tables = { functionalRecords, defectiveRecords, unknownRecords };
+
+    foreach (var table in tables)
+    {
+        if (table != null && table.Rows.Count > 0 && table.Columns.Contains("DateofAcquisition"))
+        {
+            var rawDate = table.Rows[0]["DateofAcquisition"];
+            if (rawDate != DBNull.Value && rawDate != null)
+            {
+                dateOfAcquisitionValue = Convert.ToDateTime(rawDate).ToString("MMMM dd, yyyy");
+                break;
+            }
+        }
+    }
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-15">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0" style="font-weight: bold;">@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-center mb-4">Date of Acquisition: @dateOfAcquisitionValue</h5>
+
+                    @* Success/Error Messages *@
+                    @foreach (var msg in new[] { "SuccessMessage", "ErrorMessage" })
+                    {
+                        if (TempData[msg] != null)
+                        {
+                            <div class="alert alert-@(msg == "SuccessMessage" ? "success" : "danger")">@TempData[msg]</div>
+                        }
+                    }
+                    <br />
+                    <div class="row align-items-end mb-4">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <form method="get" id="trackForm">
+                                <label for="trackNoSelect" class="form-label">Track Number</label>
+                                <select id="trackNoSelect" name="selectedTrackNo" class="form-select" onchange="this.form.submit()">
+                                    <option value="">-- Select Track No. --</option>
+                                    @foreach (var track in (ViewBag.TrackNumbers as List<string> ?? new List<string>()))
+                                    {
+                                        <option value="@track" selected="@(selectedTrackNo == track ? "selected" : null)">@track</option>
+                                    }
+                                </select>
+                            </form>
+                        </div>
+
+                        <div class="col-md-3 mb-md-0">
+                            <form method="post" asp-action="AssignLaboratory" id="assignForm">
+                                <label for="IDSelect" class="form-label">Laboratory</label>
+                                <input type="hidden" name="selectedTrackNo" value="@selectedTrackNo" />
+                                <select id="IDSelect" name="selectedIDLaboratories" class="form-select">
+                                    <option value="">-- Select Laboratory --</option>
+                                    @foreach (var lab in (ViewBag.LaboratoryName as List<string> ?? new List<string>()))
+                                    {
+                                        <option value="@lab">@lab</option>
+                                    }
+                                </select>
+                            </form>
+                        </div>
+
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-success" form="assignForm">Assign</button>
+                            <a asp-controller="TechnicalAssistantView" asp-action="AssignHistory" class="btn btn-secondary">Assigned History</a>
+                        </div>
+                    </div>
+
+                    @if (Model?.Rows.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered w-auto">
+                                <thead class="table-dark">
+                                    <tr>
+                                        @foreach (var col in Model.Columns.Cast<DataColumn>().Where(c => c.ColumnName != "ID" && c.ColumnName != "DateofAcquisition"))
+                                        {
+                                            <th class="text-nowrap">@col.ColumnName</th>
+                                        }
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (DataRow row in Model.Rows)
+                                    {
+                                        <tr data-id="@row["ID"]">
+                                            @foreach (var col in Model.Columns.Cast<DataColumn>().Where(c => c.ColumnName != "ID" && c.ColumnName != "DateofAcquisition"))
+                                            {
+                                                <td class="text-nowrap" data-column="@col.ColumnName">@row[col]</td>
+                                            }
+                                            <td>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-primary btn-sm edit-btn" data-id="@row["ID"]">Edit</button>
+                                                    <form method="post" asp-action="DeleteRow" class="d-inline m-0">
+                                                        <input type="hidden" name="trackNo" value="@selectedTrackNo" />
+                                                        <input type="hidden" name="rowId" value="@row["ID"]" />
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this row?');">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">No records found.</div>
+                    }
+
+                    @*Delete the table*@
+                    @if (!string.IsNullOrEmpty(selectedTrackNo))
+                    {
+                        <div class="mt-3">
+                            <form method="post" asp-action="DeleteTrackTable">
+                                <input type="hidden" name="trackNo" value="@selectedTrackNo" />
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this table?');">Delete File</button>
+                            </form>
+                        </div>
+                    }
+
+                    @* Edit Modal *@
+                    <div id="editModal" class="modal fade" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Record</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="editForm" method="post">
+                                        <input type="hidden" name="trackNo" id="editTrackNo" />
+                                        <input type="hidden" name="rowId" id="editRowId" />
+
+                                        @* Keep other fields read-only *@
+                                        <div id="editFields"></div>
+
+                                        @* STATUS dropdown (editable) *@
+                                        <div class="mb-3">
+                                            <label for="editStatus" class="form-label">Status</label>
+                                            <select name="updatedValues[STATUS]" id="editStatus" class="form-select">
+                                                <option value="UNKNOWN">UNKNOWN</option>
+                                                <option value="FUNCTIONAL">FUNCTIONAL</option>
+                                                <option value="DEFECTIVE">DEFECTIVE</option>
+                                            </select>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-success mt-3">Save</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".edit-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let rowId = this.getAttribute("data-id");
+                document.getElementById("editRowId").value = rowId;
+                document.getElementById("editTrackNo").value = "@selectedTrackNo";
+
+                let row = document.querySelector(`tr[data-id='${rowId}']`);
+                let fieldsContainer = document.getElementById("editFields");
+                fieldsContainer.innerHTML = "";
+
+                row.querySelectorAll("td[data-column]").forEach(cell => {
+                    let column = cell.getAttribute("data-column");
+                    let value = cell.innerText.trim();
+
+                    if (column === "STATUS") {
+                        document.getElementById("editStatus").value = value; // Make STATUS editable
+                    } else {
+                        // Make all other fields read-only
+                        fieldsContainer.innerHTML += `
+                            <div class="mb-3">
+                                <label class="form-label">${column}</label>
+                                <input type="text" class="form-control" value="${value}" readonly />
+                            </div>`;
+                    }
+                });
+
+                new bootstrap.Modal(document.getElementById("editModal")).show();
+            });
+        });
+
+        document.getElementById("editForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            fetch("/TechnicalAssistantView/UpdateRow", {
+                method: "POST",
+                body: new FormData(this)
+            })
+            .then(() => location.reload())
+            .catch(error => console.error("Update failed:", error));
+        });
+    });
+</script>
