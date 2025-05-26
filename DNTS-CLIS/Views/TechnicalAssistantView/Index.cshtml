@@ -103,11 +103,12 @@
                                             }
                                             <td>
                                                 <div class="d-flex gap-2">
-                                                    <button class="btn btn-primary btn-sm edit-btn" data-id="@row["ID"]">Edit</button>
+                                                    <button class="btn btn-sm edit-btn" data-id="@row["ID"]"><img src="~/Images/edit.svg" width="25" height="auto" /></button>
+                                                    <button class="btn btn-sm move-history-btn" data-serial="@row[Model.Columns.Cast<DataColumn>().FirstOrDefault(c => c.ColumnName.Contains("SERIAL"))?.ColumnName]"><img src="~/Images/details.svg" width="25" height="auto" /></button>
                                                     <form method="post" asp-action="DeleteRow" class="d-inline m-0">
                                                         <input type="hidden" name="trackNo" value="@selectedTrackNo" />
                                                         <input type="hidden" name="rowId" value="@row["ID"]" />
-                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this row?');">Delete</button>
+                                                        <button type="submit" class="btn btn-sm" onclick="return confirm('Delete this row?');"><img src="~/Images/trash.svg" width="25" height="auto" /></button>
                                                     </form>
                                                 </div>
                                             </td>
@@ -165,6 +166,27 @@
                             </div>
                         </div>
                     </div>
+
+                    @* Move History Modal *@
+                    <div id="moveHistoryModal" class="modal fade" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-info text-white">
+                                    <h5 class="modal-title">Move History</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="moveHistoryContent">
+                                        <div class="text-center">
+                                            <div class="spinner-border" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p class="mt-2">Loading move history...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -201,6 +223,81 @@
                 });
 
                 new bootstrap.Modal(document.getElementById("editModal")).show();
+            });
+        });
+
+         document.querySelectorAll(".move-history-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let serialNumber = this.getAttribute("data-serial");
+
+                // Show modal
+                let modal = new bootstrap.Modal(document.getElementById("moveHistoryModal"));
+                modal.show();
+
+                // Reset content
+                document.getElementById("moveHistoryContent").innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading move history...</p>
+                    </div>`;
+
+                // Fetch move history
+                fetch(`/TechnicalAssistantView/GetMoveHistory?serialNumber=${encodeURIComponent(serialNumber)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.history && data.history.length > 0) {
+                            let historyHtml = `
+                                <h6><strong>Serial Number:</strong> ${serialNumber}</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead class="table-info">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>From</th>
+                                                <th>To</th>
+                                                <th>Purpose</th>
+                                                <th>Requested By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>`;
+
+                            data.history.forEach(record => {
+                                historyHtml += `
+                                    <tr>
+                                        <td>${new Date(record.date).toLocaleDateString()}</td>
+                                        <td>${record.from || 'N/A'}</td>
+                                        <td>${record.to || 'N/A'}</td>
+                                        <td>${record.purpose || 'N/A'}</td>
+                                        <td>${record.requestedBy || 'N/A'}</td>
+                                    </tr>`;
+                            });
+
+                            historyHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>`;
+
+                            document.getElementById("moveHistoryContent").innerHTML = historyHtml;
+                        } else {
+                            document.getElementById("moveHistoryContent").innerHTML = `
+                                <div class="text-center">
+                                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                                    <h6>No Move History Found</h6>
+                                    <p class="text-muted">This equipment has no recorded movement history.</p>
+                                </div>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching move history:", error);
+                        document.getElementById("moveHistoryContent").innerHTML = `
+                            <div class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                                <h6>Error Loading History</h6>
+                                <p>Unable to load move history. Please try again.</p>
+                            </div>`;
+                    });
             });
         });
 

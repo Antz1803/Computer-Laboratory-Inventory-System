@@ -75,7 +75,7 @@ namespace DNTS_CLIS.Controllers
                 trackNumbers.Add(reader.GetString(0));
             }
 
-            Console.WriteLine($"Tracks for {laboratoryName}: {string.Join(", ", trackNumbers)}"); 
+            Console.WriteLine($"Tracks for {laboratoryName}: {string.Join(", ", trackNumbers)}");
 
             return Json(trackNumbers);
         }
@@ -317,6 +317,56 @@ namespace DNTS_CLIS.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public JsonResult GetMoveHistory(string serialNumber)
+        {
+            if (string.IsNullOrEmpty(serialNumber))
+                return Json(new { success = false, message = "Serial number is required." });
+
+            try
+            {
+                var moveHistory = new List<object>();
+
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+
+                // Query to get move history from DeploymentInfos and DeployItems tables
+                string query = @"
+            SELECT 
+                di.Date,
+                di.[From],
+                di.[To],
+                di.Purpose,
+                di.RequestedBy
+            FROM DeploymentInfos di
+            INNER JOIN DeployItems dep ON di.Id = dep.DeploymentInfoId
+            WHERE dep.SerialControlNumber = @SerialNumber
+            ORDER BY di.Date DESC";
+
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@SerialNumber", serialNumber);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    moveHistory.Add(new
+                    {
+                        date = reader["Date"] != DBNull.Value ? reader["Date"] : null,
+                        from = reader["From"] != DBNull.Value ? reader["From"].ToString() : null,
+                        to = reader["To"] != DBNull.Value ? reader["To"].ToString() : null,
+                        purpose = reader["Purpose"] != DBNull.Value ? reader["Purpose"].ToString() : null,
+                        requestedBy = reader["RequestedBy"] != DBNull.Value ? reader["RequestedBy"].ToString() : null
+                    });
+                }
+
+                return Json(new { success = true, history = moveHistory });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error fetching move history: {ex.Message}" });
+            }
         }
     }
 }

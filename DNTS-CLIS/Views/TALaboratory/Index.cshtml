@@ -12,27 +12,91 @@
         border-bottom: 1px solid black;
         color: black;
     }
+
+    .search-container {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+        .search-box input {
+            padding-right: 35px;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+    .clear-search {
+        position: absolute;
+        right: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 14px;
+        display: none;
+    }
+
+    .search-results-info {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    .highlight {
+        background-color: #fff3cd;
+        font-weight: bold;
+    }
 </style>
 <h2>Laboratory: @ViewBag.LaboratoryName</h2>
 
-<!-- TrackNo Dropdown -->
-<div class="form-group" style="width:245px;margin-top:30px;">
-    <label for="selectedTrackNo">Select Track No:</label>
-    <select id="selectedTrackNo" class="form-control" onchange="fetchTableData()" style="text-align:center;">
-        <option value="">-- Select Track No --</option>
-        @foreach (var trackNo in ViewBag.TrackNos)
-        {
-            <option value="@trackNo">@trackNo</option>
-        }
-    </select>
+<!-- Search and Filter Controls -->
+<div class="search-container">
+    <!-- TrackNo Dropdown -->
+    <div class="form-group" style="width:245px;">
+        <label for="selectedTrackNo">Select Track No:</label>
+        <select id="selectedTrackNo" class="form-control" onchange="fetchTableData()" style="text-align:center;">
+            <option value="">-- Select Track No --</option>
+            @foreach (var trackNo in ViewBag.TrackNos)
+            {
+                <option value="@trackNo">@trackNo</option>
+            }
+        </select>
+    </div>
+
+    <!-- Search Box -->
+    <div class="form-group search-box" style="width:300px;">
+        <label for="serialSearch">Search Serial Number:</label>
+        <input type="text" id="serialSearch" class="form-control" placeholder="Type to search serial numbers..." oninput="searchSerialNumbers()">
+        <i class="fas fa-search search-icon"></i>
+        <button type="button" class="clear-search" id="clearSearch" onclick="clearSearch()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
 </div>
+
+<!-- Search Results Info -->
+<div class="search-results-info" id="searchResultsInfo" style="display: none;"></div>
 
 <!-- Table to display data -->
 <div class="mt-4">
-       @*  <button id="addItemBtn" class="btn btn-success" onclick="openAddModal()">
+    @*  <button id="addItemBtn" class="btn btn-success" onclick="openAddModal()">
             <i class="fas fa-plus"></i> Add New Item
         </button> *@
-        <h1> </h1>
+    <h1> </h1>
     <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover text-center" id="trackTable">
             <thead id="tableHead"></thead>
@@ -40,6 +104,7 @@
         </table>
     </div>
 </div>
+
 <!-- Modal for Editing Details -->
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -227,6 +292,10 @@
 </div>
 
 <script>
+    // Global variables to store original data
+    let originalTableData = [];
+    let currentFilteredData = [];
+
     function fetchTableData() {
         let trackNo = document.getElementById("selectedTrackNo").value;
         let tableHead = document.getElementById("tableHead");
@@ -234,6 +303,9 @@
 
         tableHead.innerHTML = "";
         tableBody.innerHTML = "";
+
+        // Clear search when changing track
+        clearSearch();
 
         if (trackNo) {
             fetch(`/TALaboratory/GetTableDataOne?trackNo=${encodeURIComponent(trackNo)}`)
@@ -245,75 +317,19 @@
                 })
                 .then(data => {
                     console.log("Fetched data:", data);
+
+                    // Store original data globally
+                    originalTableData = data || [];
+                    currentFilteredData = [...originalTableData];
+
                     if (!data || data.length === 0) {
                         tableBody.innerHTML = "<tr><td colspan='8'>No data available</td></tr>";
                         return;
                     }
 
-                    // Get all possible columns from the first data item
-                    const firstItem = data[0];
-                    const allColumns = ["CTN", "Particular", "Brand", "serialstickerno", "Status"]; 
-
-                    // Only add Location if it exists in the data
-                    if (firstItem.hasOwnProperty("Location")) {
-                        allColumns.push("Location");
-                    }
-
-                    let headerRow = document.createElement("tr");
-                    tableHead.appendChild(headerRow);
-
-                    // Create headers for each column
-                    allColumns.forEach(column => {
-                        let th = document.createElement("th");
-                        // Format the display name ("SerialStickerNumber" -> "Serial Sticker Number")
-                        if (column === "serialstickerno") {
-                            th.textContent = "Serial Sticker Number";
-                        } else {
-                            th.textContent = column;
-                        }
-                        headerRow.appendChild(th);
-                    });
-
-                    let actionsHeader = document.createElement("th");
-                    actionsHeader.textContent = "";
-                    headerRow.appendChild(actionsHeader);
-
-                    // Create table rows for each data item
-                    data.forEach(row => {
-                        let tr = document.createElement("tr");
-
-                        allColumns.forEach(column => {
-                            let td = document.createElement("td");
-                            td.textContent = getPropertyCaseInsensitive(row, column) || "";
-                            tr.appendChild(td);
-                        });
-
-                        // Add actions
-                        let actionsTd = document.createElement("td");
-
-                       
-    let repairBtn = document.createElement("button");
-    repairBtn.innerHTML = '<i class="fas fa-tools"></i> Repair';
-    repairBtn.className = "btn btn-warning btn-sm m-1";
-    repairBtn.onclick = function() {
-        openRepairModal(row);
-    };
-     
-
-
-                        let editBtn = document.createElement("button");
-                        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
-                        editBtn.className = "btn btn-primary btn-sm m-1";
-                        editBtn.onclick = function() {
-                            editItem(row);
-                        };
-
-                        actionsTd.appendChild(editBtn);
-                          actionsTd.appendChild(repairBtn);
-                        tr.appendChild(actionsTd);
-
-                        tableBody.appendChild(tr);
-                    });
+                    // Build and display the table
+                    buildTable(currentFilteredData);
+                    updateSearchResultsInfo();
                 })
                 .catch(error => {
                     console.error('Error fetching table data:', error);
@@ -321,6 +337,153 @@
                 });
         } else {
             tableBody.innerHTML = "<tr><td colspan='8'>Please select a Track No</td></tr>";
+            originalTableData = [];
+            currentFilteredData = [];
+            updateSearchResultsInfo();
+        }
+    }
+
+    function buildTable(data) {
+        let tableHead = document.getElementById("tableHead");
+        let tableBody = document.getElementById("tableBody");
+
+        // Clear existing content
+        tableHead.innerHTML = "";
+        tableBody.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='8'>No data available</td></tr>";
+            return;
+        }
+
+        // Get all possible columns from the first data item
+        const firstItem = data[0];
+        const allColumns = ["CTN", "Particular", "Brand", "serialstickerno", "Status"];
+
+        // Only add Location if it exists in the data
+        if (firstItem.hasOwnProperty("Location")) {
+            allColumns.push("Location");
+        }
+
+        let headerRow = document.createElement("tr");
+        tableHead.appendChild(headerRow);
+
+        // Create headers for each column
+        allColumns.forEach(column => {
+            let th = document.createElement("th");
+            // Format the display name ("SerialStickerNumber" -> "Serial Sticker Number")
+            if (column === "serialstickerno") {
+                th.textContent = "Serial Sticker Number";
+            } else {
+                th.textContent = column;
+            }
+            headerRow.appendChild(th);
+        });
+
+        let actionsHeader = document.createElement("th");
+        actionsHeader.textContent = "";
+        headerRow.appendChild(actionsHeader);
+
+        // Create table rows for each data item
+        data.forEach(row => {
+            let tr = document.createElement("tr");
+
+            allColumns.forEach(column => {
+                let td = document.createElement("td");
+                let cellValue = getPropertyCaseInsensitive(row, column) || "";
+
+                // Highlight search term in serial number column
+                if (column === "serialstickerno") {
+                    td.innerHTML = highlightSearchTerm(cellValue, document.getElementById("serialSearch").value);
+                } else {
+                    td.textContent = cellValue;
+                }
+
+                tr.appendChild(td);
+            });
+
+            // Add actions
+            let actionsTd = document.createElement("td");
+
+            let repairBtn = document.createElement("button");
+            repairBtn.innerHTML = '<i class="fas fa-tools"></i> Repair';
+            repairBtn.className = "btn btn-warning btn-sm m-1";
+            repairBtn.onclick = function() {
+                openRepairModal(row);
+            };
+
+            let editBtn = document.createElement("button");
+            editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+            editBtn.className = "btn btn-primary btn-sm m-1";
+            editBtn.onclick = function() {
+                editItem(row);
+            };
+
+            actionsTd.appendChild(editBtn);
+            actionsTd.appendChild(repairBtn);
+            tr.appendChild(actionsTd);
+
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function searchSerialNumbers() {
+        const searchTerm = document.getElementById("serialSearch").value.toLowerCase();
+        const clearBtn = document.getElementById("clearSearch");
+
+        // Show/hide clear button
+        if (searchTerm.length > 0) {
+            clearBtn.style.display = "block";
+        } else {
+            clearBtn.style.display = "none";
+        }
+
+        // Filter data based on search term
+        if (searchTerm.length === 0) {
+            // No search term, show all data
+            currentFilteredData = [...originalTableData];
+        } else {
+            // Filter data where serial number contains the search term
+            currentFilteredData = originalTableData.filter(item => {
+                const serialNumber = getPropertyCaseInsensitive(item, "serialstickerno") || "";
+                return serialNumber.toLowerCase().includes(searchTerm);
+            });
+        }
+
+        // Rebuild table with filtered data
+        buildTable(currentFilteredData);
+        updateSearchResultsInfo();
+    }
+
+    function clearSearch() {
+        document.getElementById("serialSearch").value = "";
+        document.getElementById("clearSearch").style.display = "none";
+        currentFilteredData = [...originalTableData];
+        buildTable(currentFilteredData);
+        updateSearchResultsInfo();
+    }
+
+    function highlightSearchTerm(text, searchTerm) {
+        if (!searchTerm || searchTerm.length === 0) {
+            return text;
+        }
+
+        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<span class="highlight">$1</span>');
+    }
+
+    function updateSearchResultsInfo() {
+        const infoElement = document.getElementById("searchResultsInfo");
+        const searchTerm = document.getElementById("serialSearch").value;
+
+        if (searchTerm.length > 0) {
+            const totalResults = currentFilteredData.length;
+            const totalItems = originalTableData.length;
+
+            infoElement.textContent = `Found ${totalResults} result${totalResults !== 1 ? 's' : ''} out of ${totalItems} items for "${searchTerm}"`;
+            infoElement.style.display = "block";
+        } else {
+            infoElement.style.display = "none";
         }
     }
 
@@ -395,7 +558,7 @@
             TrackNo: trackNo
         };
 
-        console.log("Sending data to server:", data); 
+        console.log("Sending data to server:", data);
 
         fetch('/TALaboratory/SaveEditedItem', {
             method: 'POST',
@@ -418,7 +581,7 @@
             console.log("Success:", result);
             alert("Item updated successfully!");
             $('#editModal').modal('hide');
-            fetchTableData(); 
+            fetchTableData();
         })
         .catch(error => {
             console.error("Error:", error);
@@ -489,7 +652,7 @@
 
         // Prepare data to send to server
         const data = {
-            ItemId: parseInt(id), 
+            ItemId: parseInt(id),
             TrackNo: trackNo,
             Description: description,
             Status: "Pending", // Status set to Pending
@@ -526,7 +689,7 @@
             console.log("Success:", result);
             alert("Repair request submitted successfully!");
             $('#repairModal').modal('hide');
-            fetchTableData(); 
+            fetchTableData();
         })
         .catch(error => {
             console.error("Error:", error);

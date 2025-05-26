@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Clis5.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* Ensure full height layout */
         html, body {
@@ -25,22 +26,22 @@
         }
 
         /* Header Styling */
-    .custom-header,
-.custom-header * {
-    box-sizing: border-box;
-}
+        .custom-header,
+        .custom-header * {
+            box-sizing: border-box;
+        }
 
-.custom-header {
-    position: relative;
-    height: 240px;
-}
+        .custom-header {
+            position: relative;
+            height: 240px;
+        }
 
         .rectangle-background {
             background: #027bce;
             border-left: 3px solid #074c71;
             border-right: none;
             border-bottom: 3px solid #074c71;
-            border-top: none; 
+            border-top: none;
             height: 56px;
             position: absolute;
             top: 28px;
@@ -51,14 +52,14 @@
         }
 
 
-.vector-1 {
-    width: 330px;
-    height: 143px;
-    position: absolute;
-    left: -50px;
-    top: 0;
-    overflow: visible;
-}
+        .vector-1 {
+            width: 330px;
+            height: 143px;
+            position: absolute;
+            left: -50px;
+            top: 0;
+            overflow: visible;
+        }
 
         .Logo {
             width: 145px;
@@ -69,16 +70,17 @@
             object-fit: cover;
             aspect-ratio: 229/225;
         }
-.computer-laboratory-inventory-system {
-    color: #ffffff;
-    font-family: "Inter-Bold", sans-serif;
-    font-weight: 50;
-    position: absolute;
-    top: 33px;
-    left:11px;
-    width: 100%;
-    text-align: center;
-}
+
+        .computer-laboratory-inventory-system {
+            color: #ffffff;
+            font-family: "Inter-Bold", sans-serif;
+            font-weight: 50;
+            position: absolute;
+            top: 33px;
+            left: 11px;
+            width: 100%;
+            text-align: center;
+        }
 
         .navbar-custom {
             background-color: #027bce;
@@ -102,7 +104,6 @@
                 font-weight: 600;
                 display: flex;
                 align-items: center;
- 
                 transition: all 0.3s ease;
                 text-decoration: none;
             }
@@ -124,7 +125,7 @@
 
         .custom-dropdown-toggle::after {
             display: flex;
-            margin-top:5px;
+            margin-top: 5px;
         }
 
 
@@ -137,100 +138,232 @@
             background-color: #e9f5ff;
         }
 
+        /* Notification Styles */
+        .notification-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .notification-bell {
+            color: #fdc500;
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: color 0.3s ease;
+        }
+
+            .notification-bell:hover {
+                color: #ffed4e;
+            }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        .notification-modal .modal-header {
+            background: linear-gradient(135deg, #027bce 0%, #074c71 100%);
+            color: white;
+        }
+
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.3s ease;
+        }
+
+            .notification-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .notification-item:last-child {
+                border-bottom: none;
+            }
+
+        .notification-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .notification-details {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #495057;
+            margin: 0 0 5px 0;
+        }
+
+        .notification-description {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0 0 5px 0;
+        }
+
+        .notification-time {
+            color: #adb5bd;
+            font-size: 12px;
+        }
+
+        .notification-actions {
+            margin-top: 10px;
+        }
+
+            .notification-actions .btn {
+                font-size: 12px;
+                padding: 4px 12px;
+                margin-right: 5px;
+            }
 
         /* Main content expands to push footer down */
         .container {
-            flex:1;
-            position:relative;
-            top:-60px;
+            flex: 1;
+            position: relative;
+            top: -60px;
         }
 
         /* Footer Styling */
         footer {
             background: #027bce;
             color: white;
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
             text-align: center;
             border-top: 3px solid #004080;
             width: 100%;
-            height: 35px; 
-            margin-top: 10px; 
+            height: 35px;
+            margin-top: 10px;
         }
 
     </style>
 </head>
 <body>
     <div class="container-fluid">
-    <!-- Header -->
-    <div class="custom-header">
-        <div class="row">
-            <div class="col-12">
-                <div class="rectangle-background"></div>
-                <img class="vector-1 img-fluid" src="~/Images/vector-1.svg" />
-                <div class="computer-laboratory-inventory-system fs-3 fs-md-3 fs-lg-1">
+        <!-- Header -->
+        <div class="custom-header">
+            <div class="row">
+                <div class="col-12">
+                    <div class="rectangle-background"></div>
+                    <img class="vector-1 img-fluid" src="~/Images/vector-1.svg" />
+                    <div class="computer-laboratory-inventory-system fs-3 fs-md-3 fs-lg-1">
                         COMPUTER LABORATORY INVENTORY AND RESOURCE TRACKING SYSTEM
                     </div>
-                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Logo">
-                <img class="Logo" src="~/Images/dnts.png" />
-                </a>
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Logo">
+                        <img class="Logo" src="~/Images/dnts.png" />
+                    </a>
+                </div>
             </div>
         </div>
+        <!-- Horizontal Navigation Bar -->
+        <nav class="navbar navbar-custom justify-content-between flex-wrap">
+            <div class="d-flex flex-wrap align-items-center ">
+                <!-- File Management Dropdown -->
+                <div class="dropdown d-flex align-items-center" style="top:-8px;">
+                    <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2 custom-dropdown-toggle"
+                       href="#" id="fileManagementDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="~/Images/hardware.svg" alt="Hardware Icon" class="Home-Icon" width="30" height="30" />
+                        <span>File Management</span>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="fileManagementDropdown">
+                        <li><a class="dropdown-item" asp-area="" asp-controller="Laboratories" asp-action="Index">Laboratories</a></li>
+                        <li><a class="dropdown-item" asp-area="" asp-controller="TechnicalAssistantView" asp-action="Index">Hardware Deployment</a></li>
+                    </ul>
+                </div>
+
+                <!-- Office Deployment -->
+                <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
+                   asp-area="" asp-controller="TADeployment" asp-action="Index">
+                    <img src="~/Images/deploy.svg" alt="Deploy Icon" class="Home-Icon" width="30" height="30" />
+                    <span>Office Deployment</span>
+                </a>
+
+                <!-- Users -->
+                <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
+                   asp-area="" asp-controller="Users" asp-action="Index">
+                    <img src="~/Images/users.svg" alt="Users Icon" class="Home-Icon" width="30" height="30" />
+                    <span>Users</span>
+                </a>
+
+                <!-- Upload File -->
+                <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
+                   asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/Images/upload.svg" alt="Upload Icon" class="Home-Icon" width="30" height="30" />
+                    <span>Upload File</span>
+                </a>
+            </div>
+
+            <!-- User Info & Logout -->
+            <div class="d-flex align-items-center gap-2 text-white" style="top:-8px; position: relative;">
+                <span>
+                    <i class="fas fa-user"></i> @Context.Session.GetString("FullName")
+                    <!-- Notification Bell -->
+                    <div class="notification-container d-inline-block">
+                        <i class="fas fa-bell notification-bell" onclick="loadNotifications()" data-bs-toggle="modal" data-bs-target="#notificationModal"></i>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                    </div>
+                </span>/
+                <span style="color: #fdc500;">
+                    <i class="fas fa-user-tag"></i> @Context.Session.GetString("Role")
+                </span>/
+                <a asp-controller="Account" asp-action="Logout"
+                   style="color: white; font-size: 16px; text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </nav>
     </div>
-    <!-- Horizontal Navigation Bar -->
-    <nav class="navbar navbar-custom justify-content-between flex-wrap">
-        <div class="d-flex flex-wrap align-items-center ">
-            <!-- File Management Dropdown -->
-            <div class="dropdown d-flex align-items-center" style="top:-8px;">
-                <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2 custom-dropdown-toggle"
-                   href="#" id="fileManagementDropdown" role="button"
-                   data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="~/Images/hardware.svg" alt="Hardware Icon" class="Home-Icon" width="30" height="30" />
-                    <span>File Management</span>
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="fileManagementDropdown">
-                    <li><a class="dropdown-item" asp-area="" asp-controller="Laboratories" asp-action="Index">Laboratories</a></li>
-                    <li><a class="dropdown-item" asp-area="" asp-controller="TechnicalAssistantView" asp-action="Index">Hardware Deployment</a></li>
-                </ul>
+
+    <!-- Notification Modal -->
+    <div class="modal fade notification-modal" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notificationModalLabel">
+                        <i class="fas fa-bell me-2"></i>Repair Request Notifications
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" style="max-height: 500px; overflow-y: auto;">
+                    <div id="notificationContent">
+                        <div class="text-center p-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading notifications...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
-
-            <!-- Office Deployment -->
-            <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
-               asp-area="" asp-controller="TADeployment" asp-action="Index">
-                <img src="~/Images/deploy.svg" alt="Deploy Icon" class="Home-Icon" width="30" height="30" />
-                <span>Office Deployment</span>
-            </a>
-
-            <!-- Users -->
-            <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
-               asp-area="" asp-controller="Users" asp-action="Index">
-                <img src="~/Images/users.svg" alt="Users Icon" class="Home-Icon" width="30" height="30" />
-                <span>Users</span>
-            </a>
-
-            <!-- Upload File -->
-            <a class="nav-link text-white d-flex align-items-center gap-1" style="top:-8px; position: relative;"
-               asp-area="" asp-controller="Home" asp-action="Index">
-                <img src="~/Images/upload.svg" alt="Upload Icon" class="Home-Icon" width="30" height="30" />
-                <span>Upload File</span>
-            </a>
         </div>
-
-        <!-- User Info & Logout -->
-        <div class="d-flex align-items-center gap-2 text-white" style="top:-8px; position: relative;">
-            <span>
-                <i class="fas fa-user"></i> @Context.Session.GetString("FullName")
-            </span>/
-            <span style="color: #fdc500;">
-                <i class="fas fa-user-tag"></i> @Context.Session.GetString("Role")
-            </span>/
-            <a asp-controller="Account" asp-action="Logout"
-               style="color: white; font-size: 16px; text-decoration: none;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
-    </nav>
     </div>
 
     <!-- Main Content -->
@@ -247,6 +380,178 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Notification System
+        let notificationCount = 0;
+
+        // Load notifications when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            checkNotificationCount();
+            // Check for new notifications every 30 seconds
+            setInterval(checkNotificationCount, 30000);
+        });
+
+        function checkNotificationCount() {
+            fetch('/RepairRequests/GetNotificationCount')
+                .then(response => response.json())
+                .then(data => {
+                    notificationCount = data.count || 0;
+                    updateNotificationBadge();
+                })
+                .catch(error => {
+                    console.error('Error checking notification count:', error);
+                });
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (notificationCount > 0) {
+                badge.textContent = notificationCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function loadNotifications() {
+            const content = document.getElementById('notificationContent');
+
+            // Show loading
+            content.innerHTML = `
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading notifications...</p>
+                </div>
+            `;
+
+            fetch('/RepairRequests/GetNotifications')
+                .then(response => response.json())
+                .then(data => {
+                    displayNotifications(data.notifications || []);
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    content.innerHTML = `
+                        <div class="text-center p-4">
+                            <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                            <p class="text-muted">Error loading notifications. Please try again.</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function displayNotifications(notifications) {
+            const content = document.getElementById('notificationContent');
+
+            if (notifications.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-bell-slash text-muted fa-3x mb-3"></i>
+                        <p class="text-muted">No pending notifications</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            notifications.forEach(notification => {
+                html += `
+                    <div class="notification-item" data-id="${notification.id}">
+                        <div class="notification-content">
+                            <div class="notification-icon">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <div class="notification-details">
+                                <h6 class="notification-title">Repair Request Needs Validation</h6>
+                                <p class="notification-description">
+                                    Item <strong>${notification.trackNo}</strong> (${notification.particular})
+                                    marked as incomplete and requires supervisor validation.
+                                </p>
+                                <small class="notification-time">
+                                    <i class="fas fa-clock me-1"></i>${formatDate(notification.requestDate)}
+                                </small>
+                                <div class="notification-actions">
+                                    <button class="btn btn-success btn-sm" onclick="validateDefective(${notification.id}, true)">
+                                        <i class="fas fa-check me-1"></i>Validate as Defective
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" onclick="validateDefective(${notification.id}, false)">
+                                        <i class="fas fa-undo me-1"></i>Return to Repairing
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        function validateDefective(notificationId, approve) {
+            const action = approve ? 'validate' : 'return';
+            const message = approve ? 'validate this item as defective' : 'return this item to repairing status';
+
+            if (!confirm(`Are you sure you want to ${message}?`)) {
+                return;
+            }
+
+            fetch('/RepairRequests/ValidateDefective', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    notificationId: notificationId,
+                    approve: approve
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.message);
+                    // Remove the notification from the list
+                    const notificationItem = document.querySelector(`[data-id="${notificationId}"]`);
+                    if (notificationItem) {
+                        notificationItem.remove();
+                    }
+                    // Update notification count
+                    checkNotificationCount();
+                    // Reload notifications if modal is still open
+                    if (document.querySelector('#notificationModal.show')) {
+                        loadNotifications();
+                    }
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing the request.');
+            });
+        }
+
+      
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+            if (diffInMinutes < 1) {
+                return 'Just now';
+            } else if (diffInMinutes < 60) {
+                return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+            } else if (diffInMinutes < 1440) {
+                const hours = Math.floor(diffInMinutes / 60);
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

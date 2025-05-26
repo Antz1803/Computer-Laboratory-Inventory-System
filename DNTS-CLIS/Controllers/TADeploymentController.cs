@@ -17,13 +17,13 @@ namespace DNTS_CLIS.Controllers
         }
 
 
-            public async Task<IActionResult> TAHistoryDeployment()
+        public async Task<IActionResult> TAHistoryDeployment()
         {
             var historyList = await _context.DeploymentInfos.ToListAsync();
             return View(historyList);
         }
 
-        
+
         public async Task<IActionResult> PreviewDeployment(int id)
         {
             var deploymentInfo = await _context.DeploymentInfos
@@ -175,7 +175,7 @@ namespace DNTS_CLIS.Controllers
 
                             if (serialColumn == null)
                             {
-                                continue; 
+                                continue;
                             }
 
                             string query = $@"
@@ -300,6 +300,7 @@ namespace DNTS_CLIS.Controllers
                     await insertItemCmd.ExecuteNonQueryAsync();
                 }
 
+                await UpdateEquipmentLocation(request, conn, transaction);
                 transaction.Commit();
                 return Json(new { success = true, message = "Deployment successfully saved!" });
             }
@@ -310,6 +311,76 @@ namespace DNTS_CLIS.Controllers
             }
         }
 
+        private async Task UpdateEquipmentLocation(DeploymentInfo request, SqlConnection conn, SqlTransaction transaction)
+        {
+            try
+            {
+                // Get track numbers for the selected laboratory
+                var trackNos = await _context.AssignedLaboratories
+                    .Where(l => l.LaboratoryName == request.Laboratory)
+                    .Select(l => l.TrackNo)
+                    .Distinct()
+                    .ToListAsync();
+
+                foreach (var trackNo in trackNos)
+                {
+                    if (string.IsNullOrWhiteSpace(trackNo))
+                        continue;
+
+                    // Check if MovedTo column exists in the track table
+                    string checkColumnQuery = $@"
+                        SELECT COUNT(*) 
+                        FROM INFORMATION_SCHEMA.COLUMNS 
+                        WHERE TABLE_NAME = '{trackNo}' AND COLUMN_NAME = 'MOVEDTO'";
+
+                    using var checkCmd = new SqlCommand(checkColumnQuery, conn, transaction);
+                    int columnExists = (int)await checkCmd.ExecuteScalarAsync();
+
+                    if (columnExists == 0)
+                    {
+                        // Add MovedTo column if it doesn't exist
+                        string addColumnQuery = $"ALTER TABLE [{trackNo}] ADD MOVEDTO NVARCHAR(255)";
+                        using var addColCmd = new SqlCommand(addColumnQuery, conn, transaction);
+                        await addColCmd.ExecuteNonQueryAsync();
+                    }
+
+                    // Find the serial number column name
+                    string serialColumnQuery = $@"
+                        SELECT COLUMN_NAME 
+                        FROM INFORMATION_SCHEMA.COLUMNS 
+                        WHERE TABLE_NAME = '{trackNo}' AND COLUMN_NAME LIKE '%SERIAL%'";
+
+                    using var serialCmd = new SqlCommand(serialColumnQuery, conn, transaction);
+                    string serialColumn = (await serialCmd.ExecuteScalarAsync())?.ToString();
+
+                    if (string.IsNullOrEmpty(serialColumn))
+                        continue;
+
+                    // Update MovedTo for each deployed item
+                    foreach (var item in request.DeployItems)
+                    {
+                        if (!string.IsNullOrEmpty(item.SerialControlNumber))
+                        {
+                            string updateLocationQuery = $@"
+                                UPDATE [{trackNo}] 
+                                SET MOVEDTO = @MovedTo 
+                                WHERE [{serialColumn}] = @SerialNumber";
+
+                            using var updateCmd = new SqlCommand(updateLocationQuery, conn, transaction);
+                            updateCmd.Parameters.AddWithValue("@MovedTo", request.To ?? (object)DBNull.Value);
+                            updateCmd.Parameters.AddWithValue("@SerialNumber", item.SerialControlNumber);
+
+                            await updateCmd.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating equipment location: {ex.Message}");
+                throw; // Re-throw to trigger transaction rollback
+            }
+        }
     }
 
     public class EquipmentDetails
