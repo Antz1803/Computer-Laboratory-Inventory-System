@@ -552,34 +552,6 @@ namespace DNTS_CLIS.Controllers
             }
         }
 
-        [HttpPost]
-        public JsonResult MarkAllNotificationsAsRead()
-        {
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-
-                    string query = @"
-                        UPDATE SupervisorNotifications 
-                        SET IsRead = 1 
-                        WHERE IsRead = 0";
-
-                    using (var cmd = new SqlCommand(query, conn))
-                    {
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        return Json(new { success = true, message = $"{rowsAffected} notifications marked as read." });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error marking notifications as read: {ex.Message}");
-                return Json(new { success = false, message = "Error marking notifications as read: " + ex.Message });
-            }
-        }
-
         public class RepairRequestActionModel
         {
             public int id { get; set; }
