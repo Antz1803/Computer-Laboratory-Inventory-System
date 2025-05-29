@@ -31,7 +31,7 @@
                                     <td>@item.To</td>
                                     <td>@item.From</td>
                                     <td>@item.Purpose</td>
-                                    <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                                    <td>@item.TodayDate.ToString("yyyy-MM-dd")</td>
                                     <td>
                                         <a href="@Url.Action("PreviewDeployment", "TADeployment", new { id = item.Id })" class="btn"><img src="~/Images/preview.svg" width="30" height="auto" /></a>|
                                         <a href="@Url.Action("DeleteDeployment", "TADeployment", new { id = item.Id })" class="btn" onclick="return confirm('Are you sure?')"><img src="~/Images/trash.svg" width="30" height="auto" /></a>

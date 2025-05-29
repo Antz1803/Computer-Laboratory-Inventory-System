@@ -46,6 +46,7 @@
                         }
                     }
                     <br />
+
                     <div class="row align-items-end mb-4">
                         <div class="col-md-4 mb-3 mb-md-0">
                             <form method="get" id="trackForm">
@@ -80,10 +81,30 @@
                         </div>
                     </div>
 
+                    @* Search Bar *@
+                    @if (Model?.Rows.Count > 0)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" id="serialSearchInput" class="form-control" placeholder="Search by Serial Number..." autocomplete="off">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" title="Clear Search">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Search will filter records containing the entered text</small>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center">
+                                <span id="searchResults" class="text-muted"></span>
+                            </div>
+                        </div>
+                    }
+
                     @if (Model?.Rows.Count > 0)
                     {
                         <div class="table-responsive">
-                            <table class="table table-bordered w-auto">
+                            <table class="table table-bordered w-auto" id="dataTable">
                                 <thead class="table-dark">
                                     <tr>
                                         @foreach (var col in Model.Columns.Cast<DataColumn>().Where(c => c.ColumnName != "ID" && c.ColumnName != "DateofAcquisition"))
@@ -93,10 +114,10 @@
                                         <th></th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tableBody">
                                     @foreach (DataRow row in Model.Rows)
                                     {
-                                        <tr data-id="@row["ID"]">
+                                        <tr data-id="@row["ID"]" class="table-row">
                                             @foreach (var col in Model.Columns.Cast<DataColumn>().Where(c => c.ColumnName != "ID" && c.ColumnName != "DateofAcquisition"))
                                             {
                                                 <td class="text-nowrap" data-column="@col.ColumnName">@row[col]</td>
@@ -116,6 +137,13 @@
                                     }
                                 </tbody>
                             </table>
+                        </div>
+
+                        @* No Results Message *@
+                        <div id="noResultsMessage" class="alert alert-info text-center" style="display: none;">
+                            <i class="fas fa-search fa-2x mb-2"></i>
+                            <h6>No matching records found</h6>
+                            <p class="mb-0">Try adjusting your search terms or clear the search to view all records.</p>
                         </div>
                     }
                     else
@@ -187,54 +215,101 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".edit-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                let rowId = this.getAttribute("data-id");
-                document.getElementById("editRowId").value = rowId;
-                document.getElementById("editTrackNo").value = "@selectedTrackNo";
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Search functionality
+            const searchInput = document.getElementById("serialSearchInput");
+            const clearSearchBtn = document.getElementById("clearSearchBtn");
+            const tableRows = document.querySelectorAll(".table-row");
+            const searchResults = document.getElementById("searchResults");
+            const noResultsMessage = document.getElementById("noResultsMessage");
+            const dataTable = document.getElementById("dataTable");
 
-                let row = document.querySelector(`tr[data-id='${rowId}']`);
-                let fieldsContainer = document.getElementById("editFields");
-                fieldsContainer.innerHTML = "";
+            // Find all serial number columns (columns that contain "SERIAL" in their name)
+            const serialColumns = [];
+            document.querySelectorAll("thead th").forEach((th, index) => {
+                if (th.textContent.toUpperCase().includes("SERIAL")) {
+                    serialColumns.push(index);
+                }
+            });
 
-                row.querySelectorAll("td[data-column]").forEach(cell => {
-                    let column = cell.getAttribute("data-column");
-                    let value = cell.innerText.trim();
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
 
-                    if (column === "STATUS") {
-                        document.getElementById("editStatus").value = value; // Make STATUS editable
+                if (searchTerm === "") {
+                    // Show all rows
+                    tableRows.forEach(row => {
+                        row.style.display = "";
+                    });
+                    visibleCount = tableRows.length;
+                    searchResults.textContent = "";
+                    noResultsMessage.style.display = "none";
+                    dataTable.style.display = "";
+                } else {
+                    // Filter rows based on serial number columns
+                    tableRows.forEach(row => {
+                        let hasMatch = false;
+
+                        // Check all serial number columns
+                        serialColumns.forEach(columnIndex => {
+                            const cell = row.cells[columnIndex];
+                            if (cell && cell.textContent.toLowerCase().includes(searchTerm)) {
+                                hasMatch = true;
+                            }
+                        });
+
+                        if (hasMatch) {
+                            row.style.display = "";
+                            visibleCount++;
+                        } else {
+                            row.style.display = "none";
+                        }
+                    });
+
+                    // Update results counter
+                    if (visibleCount > 0) {
+                        searchResults.textContent = `Found ${visibleCount} matching record${visibleCount !== 1 ? 's' : ''}`;
+                        noResultsMessage.style.display = "none";
+                        dataTable.style.display = "";
                     } else {
-                        // Make all other fields read-only
-                        fieldsContainer.innerHTML += `
-                            <div class="mb-3">
-                                <label class="form-label">${column}</label>
-                                <input type="text" class="form-control" value="${value}" readonly />
-                            </div>`;
+                        searchResults.textContent = "";
+                        noResultsMessage.style.display = "block";
+                        dataTable.style.display = "none";
                     }
+                }
+            }
+
+            // Real-time search as user types
+            if (searchInput) {
+                searchInput.addEventListener("input", performSearch);
+
+                // Clear search functionality
+                clearSearchBtn.addEventListener("click", function() {
+                    searchInput.value = "";
+                    performSearch();
+                    searchInput.focus();
                 });
 
-                new bootstrap.Modal(document.getElementById("editModal")).show();
-            });
-        });
+                // Show/hide clear button based on input
+                searchInput.addEventListener("input", function() {
+                    if (this.value.length > 0) {
+                        clearSearchBtn.style.display = "block";
+                    } else {
+                        clearSearchBtn.style.display = "none";
+                    }
+                });
+            }
 
-         document.querySelectorAll(".move-history-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                let serialNumber = this.getAttribute("data-serial");
-
-                // Show modal
-                let modal = new bootstrap.Modal(document.getElementById("moveHistoryModal"));
-                modal.show();
-
-                // Reset content
+            // Function to load move history
+            function loadMoveHistory(serialNumber) {
                 document.getElementById("moveHistoryContent").innerHTML = `
                     <div class="text-center">
                         <div class="spinner-border" role="status">
@@ -243,7 +318,6 @@
                         <p class="mt-2">Loading move history...</p>
                     </div>`;
 
-                // Fetch move history
                 fetch(`/TechnicalAssistantView/GetMoveHistory?serialNumber=${encodeURIComponent(serialNumber)}`)
                     .then(response => response.json())
                     .then(data => {
@@ -264,9 +338,10 @@
                                         <tbody>`;
 
                             data.history.forEach(record => {
+                                const date = record.date ? new Date(record.date).toLocaleDateString() : 'N/A';
                                 historyHtml += `
                                     <tr>
-                                        <td>${new Date(record.date).toLocaleDateString()}</td>
+                                        <td>${date}</td>
                                         <td>${record.from || 'N/A'}</td>
                                         <td>${record.to || 'N/A'}</td>
                                         <td>${record.purpose || 'N/A'}</td>
@@ -298,17 +373,57 @@
                                 <p>Unable to load move history. Please try again.</p>
                             </div>`;
                     });
+            }
+
+            // Edit functionality 
+            document.querySelectorAll(".edit-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    let rowId = this.getAttribute("data-id");
+                    document.getElementById("editRowId").value = rowId;
+                    document.getElementById("editTrackNo").value = "@selectedTrackNo";
+
+                    let row = document.querySelector(`tr[data-id='${rowId}']`);
+                    let fieldsContainer = document.getElementById("editFields");
+                    fieldsContainer.innerHTML = "";
+
+                    row.querySelectorAll("td[data-column]").forEach(cell => {
+                        let column = cell.getAttribute("data-column");
+                        let value = cell.innerText.trim();
+
+                        if (column === "STATUS") {
+                            document.getElementById("editStatus").value = value;
+                        } else {
+                            fieldsContainer.innerHTML += `
+                                <div class="mb-3">
+                                    <label class="form-label">${column}</label>
+                                    <input type="text" class="form-control" value="${value}" readonly />
+                                </div>`;
+                        }
+                    });
+
+                    new bootstrap.Modal(document.getElementById("editModal")).show();
+                });
+            });
+
+            // Move history functionality
+            document.querySelectorAll(".move-history-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    let serialNumber = this.getAttribute("data-serial");
+                    let modal = new bootstrap.Modal(document.getElementById("moveHistoryModal"));
+                    modal.show();
+                    loadMoveHistory(serialNumber);
+                });
+            });
+
+            // Form submission
+            document.getElementById("editForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+                fetch("/TechnicalAssistantView/UpdateRow", {
+                    method: "POST",
+                    body: new FormData(this)
+                })
+                .then(() => location.reload())
+                .catch(error => console.error("Update failed:", error));
             });
         });
-
-        document.getElementById("editForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-            fetch("/TechnicalAssistantView/UpdateRow", {
-                method: "POST",
-                body: new FormData(this)
-            })
-            .then(() => location.reload())
-            .catch(error => console.error("Update failed:", error));
-        });
-    });
-</script>
+    </script>

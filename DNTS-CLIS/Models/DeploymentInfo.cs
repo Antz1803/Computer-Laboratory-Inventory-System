@@ -10,7 +10,8 @@ namespace DNTS_CLIS.Models
         public string To { get; set; }
         public string From { get; set; }
         public string Purpose { get; set; }
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime TodayDate { get; set; } = DateTime.Now;
+        public DateTime DurationDate { get; set; } = DateTime.Now;
         public string Laboratory { get; set; }
         public string ReleasedBy { get; set; }
         public string ReceivedBy { get; set; }

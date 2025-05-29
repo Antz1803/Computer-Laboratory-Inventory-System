@@ -332,10 +332,9 @@ namespace DNTS_CLIS.Controllers
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
 
-                // Query to get move history from DeploymentInfos and DeployItems tables
                 string query = @"
             SELECT 
-                di.Date,
+                di.TodayDate,
                 di.[From],
                 di.[To],
                 di.Purpose,
@@ -343,7 +342,7 @@ namespace DNTS_CLIS.Controllers
             FROM DeploymentInfos di
             INNER JOIN DeployItems dep ON di.Id = dep.DeploymentInfoId
             WHERE dep.SerialControlNumber = @SerialNumber
-            ORDER BY di.Date DESC";
+            ORDER BY di.TodayDate DESC";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@SerialNumber", serialNumber);
@@ -353,11 +352,11 @@ namespace DNTS_CLIS.Controllers
                 {
                     moveHistory.Add(new
                     {
-                        date = reader["Date"] != DBNull.Value ? reader["Date"] : null,
-                        from = reader["From"] != DBNull.Value ? reader["From"].ToString() : null,
-                        to = reader["To"] != DBNull.Value ? reader["To"].ToString() : null,
-                        purpose = reader["Purpose"] != DBNull.Value ? reader["Purpose"].ToString() : null,
-                        requestedBy = reader["RequestedBy"] != DBNull.Value ? reader["RequestedBy"].ToString() : null
+                        date = reader["TodayDate"] != DBNull.Value ? Convert.ToDateTime(reader["TodayDate"]) : (DateTime?)null,
+                        from = reader["From"]?.ToString() ?? null,
+                        to = reader["To"]?.ToString() ?? null,
+                        purpose = reader["Purpose"]?.ToString() ?? null,
+                        requestedBy = reader["RequestedBy"]?.ToString() ?? null
                     });
                 }
 

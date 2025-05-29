@@ -62,7 +62,8 @@ namespace DNTS_CLIS.Controllers
                         [To] NVARCHAR(255),  
                         [From] NVARCHAR(255),  
                         Purpose NVARCHAR(255),
-                        Date DATETIME DEFAULT GETDATE(),
+                        TodayDate DATETIME DEFAULT GETDATE(),
+                        DurationDate DATETIME DEFAULT GETDATE(),
                         Laboratory NVARCHAR(255),
                         ReleasedBy NVARCHAR(255),
                         ReceivedBy NVARCHAR(255)

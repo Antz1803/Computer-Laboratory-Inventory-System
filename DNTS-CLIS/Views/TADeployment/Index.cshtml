@@ -46,9 +46,15 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Date:</label>
-                            <input type="date" class="form-control" name="Date">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Today Date:</label>
+                                <input type="date" class="form-control" name="TodayDate" id="todayDate" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Duration Date:</label>
+                                <input type="date" class="form-control" name="DurationDate">
+                            </div>
                         </div>
 
                         <h5 class="mt-4 text-primary">Select Laboratory and CTN</h5>
@@ -305,5 +311,9 @@
                 }
             });
         });
+    });
+       document.addEventListener('DOMContentLoaded', function() {
+        let today = new Date().toISOString().split('T')[0];
+        document.getElementById('todayDate').value = today;
     });
 </script>

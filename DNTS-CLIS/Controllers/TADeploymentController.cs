@@ -234,80 +234,99 @@ namespace DNTS_CLIS.Controllers
 
             try
             {
-                // Ensure tables exist dynamically
-                var createTablesQuery = @"
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'DeploymentInfos')
-                BEGIN
-                    CREATE TABLE DeploymentInfos (
-                        Id INT IDENTITY(1,1) PRIMARY KEY,
-                        RequestedBy NVARCHAR(255),
-                        [To] NVARCHAR(255),  
-                        [From] NVARCHAR(255),  
-                        Purpose NVARCHAR(255),
-                        Date DATETIME DEFAULT GETDATE(),
-                        Laboratory NVARCHAR(255),
-                        ReleasedBy NVARCHAR(255),
-                        ReceivedBy NVARCHAR(255)
-                    )
-                END;
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'DeployItems')
-                BEGIN
-                    CREATE TABLE DeployItems (
-                        Id INT IDENTITY(1,1) PRIMARY KEY,
-                        DeploymentInfoId INT,
-                        Particular NVARCHAR(255),
-                        Brand NVARCHAR(255),
-                        Quantity INT,
-                        SerialControlNumber NVARCHAR(255),
-                        FOREIGN KEY (DeploymentInfoId) REFERENCES DeploymentInfos(Id) ON DELETE CASCADE
-                    )
-                END;";
+                // Ensure DeploymentInfos table exists
+                var createDeploymentInfosQuery = @"
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'DeploymentInfos')
+        BEGIN
+            CREATE TABLE DeploymentInfos (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                RequestedBy NVARCHAR(255),
+                [To] NVARCHAR(255),  
+                [From] NVARCHAR(255),  
+                Purpose NVARCHAR(255),
+                TodayDate DATETIME DEFAULT GETDATE(),
+                DurationDate DATETIME DEFAULT GETDATE(),
+                Laboratory NVARCHAR(255),
+                ReleasedBy NVARCHAR(255),
+                ReceivedBy NVARCHAR(255)
+            )
+        END";
 
-                using var createCmd = new SqlCommand(createTablesQuery, conn, transaction);
-                await createCmd.ExecuteNonQueryAsync();
+                // Ensure DeployItems table exists
+                var createDeployItemsQuery = @"
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'DeployItems')
+        BEGIN
+            CREATE TABLE DeployItems (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                DeploymentInfoId INT FOREIGN KEY REFERENCES DeploymentInfos(Id),
+                Particular NVARCHAR(255),
+                Brand NVARCHAR(255),
+                Quantity INT,
+                SerialControlNumber NVARCHAR(255)
+            )
+        END";
 
-                // Insert into DeploymentInfos
-                var insertDeploymentQuery = @"
-                INSERT INTO DeploymentInfos (RequestedBy, [To], [From], Purpose, Date, Laboratory, ReleasedBy, ReceivedBy)
-                OUTPUT INSERTED.Id
-                VALUES (@RequestedBy, @To, @From, @Purpose, @Date, @Laboratory, @ReleasedBy, @ReceivedBy);";
-
-                using var insertCmd = new SqlCommand(insertDeploymentQuery, conn, transaction);
-                insertCmd.Parameters.AddWithValue("@RequestedBy", request.RequestedBy ?? (object)DBNull.Value);
-                insertCmd.Parameters.AddWithValue("@To", request.To ?? (object)DBNull.Value);
-                insertCmd.Parameters.AddWithValue("@From", request.From ?? (object)DBNull.Value);
-                insertCmd.Parameters.AddWithValue("@Purpose", request.Purpose ?? (object)DBNull.Value);
-                insertCmd.Parameters.AddWithValue("@Date", request.Date);
-                insertCmd.Parameters.AddWithValue("@Laboratory", request.Laboratory ?? (object)DBNull.Value);
-                insertCmd.Parameters.AddWithValue("@ReleasedBy", request.ReleasedBy ?? (object)DBNull.Value);
-                insertCmd.Parameters.AddWithValue("@ReceivedBy", request.ReceivedBy ?? (object)DBNull.Value);
-
-                int deploymentInfoId = (int)await insertCmd.ExecuteScalarAsync();
-
-                // Insert DeployItems
-                var insertItemQuery = @"
-                INSERT INTO DeployItems (DeploymentInfoId, Particular, Brand, Quantity, SerialControlNumber)
-                VALUES (@DeploymentInfoId, @Particular, @Brand, @Quantity, @SerialControlNumber);";
-
-                foreach (var item in request.DeployItems)
+                using (var cmd = new SqlCommand(createDeploymentInfosQuery, conn, transaction))
                 {
-                    using var insertItemCmd = new SqlCommand(insertItemQuery, conn, transaction);
-                    insertItemCmd.Parameters.AddWithValue("@DeploymentInfoId", deploymentInfoId);
-                    insertItemCmd.Parameters.AddWithValue("@Particular", item.Particular ?? (object)DBNull.Value);
-                    insertItemCmd.Parameters.AddWithValue("@Brand", item.Brand ?? (object)DBNull.Value);
-                    insertItemCmd.Parameters.AddWithValue("@Quantity", item.Quantity);
-                    insertItemCmd.Parameters.AddWithValue("@SerialControlNumber", item.SerialControlNumber ?? (object)DBNull.Value);
-                    await insertItemCmd.ExecuteNonQueryAsync();
+                    await cmd.ExecuteNonQueryAsync();
                 }
 
+                using (var cmd = new SqlCommand(createDeployItemsQuery, conn, transaction))
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                // Insert into DeploymentInfos
+                var insertDeploymentInfoQuery = @"
+        INSERT INTO DeploymentInfos (RequestedBy, [To], [From], Purpose, TodayDate, DurationDate, Laboratory, ReleasedBy, ReceivedBy)
+        OUTPUT INSERTED.Id
+        VALUES (@RequestedBy, @To, @From, @Purpose, @TodayDate, @DurationDate, @Laboratory, @ReleasedBy, @ReceivedBy)";
+
+                int deploymentInfoId;
+                using (var cmd = new SqlCommand(insertDeploymentInfoQuery, conn, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@RequestedBy", request.RequestedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@To", request.To ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@From", request.From ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Purpose", request.Purpose ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@TodayDate", request.TodayDate);
+                    cmd.Parameters.AddWithValue("@DurationDate", request.DurationDate);
+                    cmd.Parameters.AddWithValue("@Laboratory", request.Laboratory ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ReleasedBy", request.ReleasedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ReceivedBy", request.ReceivedBy ?? (object)DBNull.Value);
+
+                    deploymentInfoId = (int)await cmd.ExecuteScalarAsync();
+                }
+
+                // Insert related DeployItems
+                foreach (var item in request.DeployItems)
+                {
+                    var insertDeployItemQuery = @"
+            INSERT INTO DeployItems (DeploymentInfoId, Particular, Brand, Quantity, SerialControlNumber)
+            VALUES (@DeploymentInfoId, @Particular, @Brand, @Quantity, @SerialControlNumber)";
+
+                    using (var cmd = new SqlCommand(insertDeployItemQuery, conn, transaction))
+                    {
+                        cmd.Parameters.AddWithValue("@DeploymentInfoId", deploymentInfoId);
+                        cmd.Parameters.AddWithValue("@Particular", item.Particular ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Brand", item.Brand ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Quantity", item.Quantity);
+                        cmd.Parameters.AddWithValue("@SerialControlNumber", item.SerialControlNumber ?? (object)DBNull.Value);
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+
+                // Commit transaction
                 await UpdateEquipmentLocation(request, conn, transaction);
                 transaction.Commit();
-                return Json(new { success = true, message = "Deployment successfully saved!" });
+
+                return Json(new { success = true, message = "Deployment form submitted successfully." });
             }
             catch (Exception ex)
             {
                 transaction.Rollback();
-                return Json(new { success = false, message = $"Error saving deployment: {ex.Message}" });
+                return Json(new { success = false, message = $"Error submitting deployment form: {ex.Message}" });
             }
         }
 
