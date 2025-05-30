@@ -114,7 +114,7 @@ namespace Clis5.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UserId,FirstName,LastName,Email,Role,AssignLaboratory,Username,Password")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("UserId,FirstName,LastName,BirthDate,Age,Email,Role,AssignLaboratory,Username,Password")] User user)
         {
             if (id != user.UserId)
             {
@@ -132,17 +132,11 @@ namespace Clis5.Controllers
             user.Status = existingUser.Status;
 
             // Handle Supervisor role
-            if (user.Role == "Supervisor")
-            {
-                user.AssignLaboratory = "N/A";
-            }
-            else if(user.Role == "Property Custodian")
+            if (user.Role == "Supervisor" || user.Role == "Property Custodian")
             {
                 user.AssignLaboratory = "N/A";
             }
 
-            // Force ModelState to be valid since we're manually handling specific fields
-            ModelState.Clear();
 
             // Update the entity
             _context.Update(user);

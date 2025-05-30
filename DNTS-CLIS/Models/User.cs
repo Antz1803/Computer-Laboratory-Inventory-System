@@ -4,7 +4,7 @@ namespace DNTS_CLIS.Models
 {
     public class User
     {
-        [key]
+        [Key]
         public int UserId { get; set; }
         public string FirstName {  get; set; }
         public string LastName { get; set; }
