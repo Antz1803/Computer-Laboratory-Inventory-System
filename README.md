@@ -174,6 +174,6 @@ Specifically, the system is capable of:
 
 🧩 Iteraction for the System
 
-→ Go to "tools" and hover the "nugets package" then click the "Package Console". Put Update-database in the console.
+→ Go to "Tools" and hover the "Nuget Package Manager" then click the "Package Manager Console". Put Update-database in the console.
 
 → For the MS Excel file on inventory go to resources and find "Inventory File".
