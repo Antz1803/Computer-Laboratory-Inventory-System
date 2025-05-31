@@ -5,9 +5,6 @@
 
 ➤ This research aimed to develop and evaluate a modernized computer laboratory inventory and resource tracking system for the College of Computer Studies at Asian College of Technology. The system aimed to address the inefficiencies of the current paper-based system by providing a well-structured platform for managing computer laboratory records, improving security and privacy, and implementing a built-in inventory and report generation. A rapid application development (RAD) approach was used, including system prototyping and interview techniques, to gather user feedback and refine the system design. The developed system successfully addressed the research objectives, providing a more efficient and secure solution for laboratory management. The findings have practical implications for improving computer laboratory inventory and resource tracking, and enhancing the overall performance of the College of Computer Studies.
 
-
-﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌﹌
-
 🔗 Rationale of the Study
 
 ➤ Technology is everywhere in our modern world, especially in education. Computers have become essential tools for learning and preparing for future careers. Students need access to up-to-date technology to develop critical skills. Web-based applications are software applications accessible through a web browser over the internet or an intranet. Web-based applications offer several advantages over traditional software applications, such as automatic updates, easy accessibility, and more. Therefore, the technical staffs of Asian College of Technology need a faster and more reliable way in doing their inventory and reporting to make their work easier and faster, thus improving their work efficiency and productivity. 
