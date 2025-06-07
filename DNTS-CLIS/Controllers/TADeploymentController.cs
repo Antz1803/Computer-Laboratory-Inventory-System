@@ -397,9 +397,67 @@ namespace DNTS_CLIS.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating equipment location: {ex.Message}");
-                throw; // Re-throw to trigger transaction rollback
+                throw;
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetDueDateNotifications()
+        {
+            var currentDate = DateTime.Now.Date;
+            var count = await _context.DeploymentInfos
+                .Where(d => d.DurationDate.Date <= currentDate.AddDays(3))
+                .CountAsync();
+
+            return Json(new { count = count });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDueDateDetails()
+        {
+            var currentDate = DateTime.Now.Date;
+            var deployments = await _context.DeploymentInfos
+      .Include(d => d.DeployItems)
+      .Where(d => d.DurationDate.Date <= currentDate.AddDays(3))
+      .ToListAsync();
+
+            var notifications = deployments.Select(d => new {
+                id = d.Id,
+                laboratory = d.Laboratory,
+                durationDate = d.DurationDate,
+                type = "deployment",
+                deployItems = d.DeployItems.Select(di => new {
+                    id = di.Id,
+                    particular = di.Particular,
+                    serialcontrolnumber = di.SerialControlNumber
+                }).ToList()
+            }).ToList();
+
+            return Json(new { notifications = notifications });
+        }
+
+        [HttpDelete("RemoveNotification/{id}")]
+        public async Task<IActionResult> RemoveNotification(int id)
+        {
+            if (id <= 0)
+                return BadRequest(new { success = false, message = "Invalid ID" });
+
+            try
+            {
+                var deployment = await _context.DeploymentInfos.FindAsync(id);
+                if (deployment == null)
+                    return NotFound(new { success = false, message = "Notification not found" });
+
+                _context.DeploymentInfos.Remove(deployment);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
     }
 
     public class EquipmentDetails
