@@ -435,29 +435,6 @@ namespace DNTS_CLIS.Controllers
             return Json(new { notifications = notifications });
         }
 
-        [HttpDelete("RemoveNotification/{id}")]
-        public async Task<IActionResult> RemoveNotification(int id)
-        {
-            if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid ID" });
-
-            try
-            {
-                var deployment = await _context.DeploymentInfos.FindAsync(id);
-                if (deployment == null)
-                    return NotFound(new { success = false, message = "Notification not found" });
-
-                _context.DeploymentInfos.Remove(deployment);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Internal server error" });
-            }
-        }
-
     }
 
     public class EquipmentDetails

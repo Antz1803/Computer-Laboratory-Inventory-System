@@ -537,51 +537,18 @@
             content.innerHTML = html;
         }
 
-                    document.addEventListener('click', function(event) {
-            if (event.target.matches('.remove-notification-btn')) {
-                const notificationElement = event.target.closest('.notification-item');
-                if (!notificationElement) return;
-
-                const id = event.target.getAttribute('data-id');
-                if (!id) {
-                    alert('Notification ID not found.');
-                    return;
-                }
-
-                // Disable button to prevent multiple clicks
-                event.target.disabled = true;
-
-                removeNotificationFromServer(id)
-                    .then(() => {
-                        // Remove notification from DOM on success
+                document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener("click", function(event) {
+                if (event.target.matches(".remove-notification-btn")) {
+                    const notificationElement = event.target.closest(".notification-item");
+                    if (notificationElement) {
                         notificationElement.remove();
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        alert('Failed to remove notification on server.');
-                        // Re-enable button if failed
-                        event.target.disabled = false;
-                    });
-            }
+                    }
+                }
+            });
         });
 
-        function removeNotificationFromServer(id) {
-            return fetch(`/TADeployment/RemoveNotification/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Server responded with status ${response.status}`);
-                }
-                // 204 No Content means no body to parse
-                return response.status === 204 ? null : response.json();
-            });
-        }
-
-        function validateDefective(notificationId, approve) {
+                function validateDefective(notificationId, approve) {
             const action = approve ? 'validate' : 'return';
             const message = approve ? 'validate this item as defective' : 'return this item to repairing status';
 
