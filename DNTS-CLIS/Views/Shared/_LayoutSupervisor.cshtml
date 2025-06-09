@@ -359,8 +359,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="modal-footer" style="background-color:#074c71">
                 </div>
             </div>
         </div>
@@ -480,7 +479,7 @@
             notifications.forEach(notification => {
                 if (notification.type === 'deployment') {
                     html += `
-                        <div class="notification-item" data-id="${notification.id}">
+                      <div class="notification-item" data-id="${notification.id}" onclick="markDueDateAsRead(${notification.id}, this)"style="cursor: pointer;">
                             <div class="notification-content">
                                 <div class="notification-icon" style="background: #ffc107;">
                                     <i class="fas fa-calendar-times"></i>
@@ -488,17 +487,16 @@
                                 <div class="notification-details">
                                     <h6 class="notification-title">Deployment Due Date</h6>
                                             <p class="notification-description">
-            Deployment at <strong>
-                ${notification.laboratory},
-                ${notification.deployItems.length > 0 ? notification.deployItems[0].particular : 'N/A'}
-                -->
-                ${notification.deployItems.length > 0 ? notification.deployItems[0].serialcontrolnumber : 'N/A'}
-            </strong> is due on ${formatDate(notification.durationDate)}.
-        </p>
+                                            Deployment at <strong>
+                                                ${notification.laboratory},
+                                                ${notification.deployItems.length > 0 ? notification.deployItems[0].particular : 'N/A'}
+                                                -->
+                                                ${notification.deployItems.length > 0 ? notification.deployItems[0].serialcontrolnumber : 'N/A'}
+                                            </strong> is due on ${formatDate(notification.durationDate)}.
+                                        </p>
                                     <small class="notification-time">
                                         <i class="fas fa-calendar me-1"></i>Due: ${formatDate(notification.durationDate)}
-                                    </small>
-                                     <button class="btn btn-sm btn-danger remove-notification-btn" data-id="${notification.id}">Remove</button>
+                                    </small>                                   
                                 </div>
                             </div>
                         </div>
@@ -536,17 +534,15 @@
 
             content.innerHTML = html;
         }
-
-                document.addEventListener("DOMContentLoaded", function() {
-            document.addEventListener("click", function(event) {
-                if (event.target.matches(".remove-notification-btn")) {
-                    const notificationElement = event.target.closest(".notification-item");
-                    if (notificationElement) {
-                        notificationElement.remove();
-                    }
-                }
-            });
-        });
+                function markDueDateAsRead(notificationId, element) {
+            if (notificationCount > 0) {
+                notificationCount--;
+                updateNotificationBadge();
+            }
+            if (element) {
+                element.remove();
+            }
+        }
 
                 function validateDefective(notificationId, approve) {
             const action = approve ? 'validate' : 'return';
