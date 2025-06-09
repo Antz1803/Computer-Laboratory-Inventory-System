@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="~/Clis5.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Ensure full height layout */
+   
         html, body {
             height: 100%;
             margin: 0;
@@ -239,6 +239,10 @@
                 margin-right: 5px;
             }
 
+        .notification-read {
+            background-color: #a3cef1;
+            opacity: 0.7;
+        }
         /* Main content expands to push footer down */
         .container {
             flex: 1;
@@ -285,7 +289,7 @@
                 <!-- File Management Dropdown -->
                 <div class="dropdown d-flex align-items-center" style="top:-8px;">
                     <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2 custom-dropdown-toggle"
-                       href="#" id="fileManagementDropdown" role="button"
+                       href="" id="fileManagementDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="~/Images/hardware.svg" alt="Hardware Icon" class="Home-Icon" width="30" height="30" />
                         <span>File Management</span>
@@ -403,19 +407,25 @@
                 });
         }
 
-        function checkDueDates() {
+               function checkDueDates() {
             fetch('/TADeployment/GetDueDateNotifications')
                 .then(response => response.json())
                 .then(data => {
-                    const dueDateCount = data.count || 0;
-          
+                    let dueDateCount = data.count || 0;
+
+                    // Get locally read notifications from localStorage
+                    let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+
                     notificationCount += dueDateCount;
+                    notificationCount = Math.max(0, notificationCount - readNotifications.length);
+
                     updateNotificationBadge();
                 })
                 .catch(error => {
                     console.error('Error checking due dates:', error);
                 });
         }
+
 
         function updateNotificationBadge() {
             const badge = document.getElementById('notificationBadge');
@@ -427,7 +437,7 @@
             }
         }
 
-        function loadNotifications() {
+                   function loadNotifications() {
             const content = document.getElementById('notificationContent');
 
             // Show loading
@@ -449,7 +459,24 @@
                 const repairNotifications = repairData.notifications || [];
                 const dueDateNotifications = dueDateData.notifications || [];
                 const allNotifications = [...repairNotifications, ...dueDateNotifications];
+
+                // Get read notifications from localStorage
+                const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+
+                // Sort notifications: unread first, then read
+                allNotifications.sort((a, b) => {
+                    const aRead = readNotifications.includes(a.id);
+                    const bRead = readNotifications.includes(b.id);
+
+                    if (aRead === bRead) return 0;     
+                    if (aRead) return 1;             
+                    return -1;                      
+                });
+
                 displayNotifications(allNotifications);
+
+                // Highlight read notifications AFTER rendering
+                highlightReadNotifications();
             })
             .catch(error => {
                 console.error('Error loading notifications:', error);
@@ -461,6 +488,7 @@
                 `;
             });
         }
+
 
         function displayNotifications(notifications) {
             const content = document.getElementById('notificationContent');
@@ -478,29 +506,31 @@
             let html = '';
             notifications.forEach(notification => {
                 if (notification.type === 'deployment') {
-                    html += `
-                      <div class="notification-item" data-id="${notification.id}" onclick="markDueDateAsRead(${notification.id}, this)"style="cursor: pointer;">
-                            <div class="notification-content">
-                                <div class="notification-icon" style="background: #ffc107;">
-                                    <i class="fas fa-calendar-times"></i>
-                                </div>
-                                <div class="notification-details">
-                                    <h6 class="notification-title">Deployment Due Date</h6>
-                                            <p class="notification-description">
-                                            Deployment at <strong>
-                                                ${notification.laboratory},
-                                                ${notification.deployItems.length > 0 ? notification.deployItems[0].particular : 'N/A'}
-                                                -->
-                                                ${notification.deployItems.length > 0 ? notification.deployItems[0].serialcontrolnumber : 'N/A'}
-                                            </strong> is due on ${formatDate(notification.durationDate)}.
+                           html += `
+                                  <div class="notification-item" data-id="${notification.id}" onclick="markDueDateAsRead(${notification.id}, this)" style="cursor: pointer;">
+                                    <div class="notification-content">
+                                      <div class="notification-icon" style="background: #ffc107;">
+                                        <i class="fas fa-calendar-times"></i>
+                                      </div>
+                                      <div class="notification-details">
+                                        <h6 class="notification-title">Deployment Due Date</h6>
+                                        <p class="notification-description">
+                                          Deployment at <strong>${notification.laboratory}</strong> has the following items due on ${formatDate(notification.durationDate)}:
                                         </p>
-                                    <small class="notification-time">
-                                        <i class="fas fa-calendar me-1"></i>Due: ${formatDate(notification.durationDate)}
-                                    </small>                                   
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                                        <ul>
+                                          ${notification.deployItems.map(item => `
+                                            <li>
+                                              <strong>${item.particular || 'N/A'}</strong> - SN: ${item.serialcontrolnumber || 'N/A'}
+                                            </li>
+                                          `).join('')}
+                                        </ul>
+                                        <small class="notification-time">
+                                          <i class="fas fa-calendar me-1"></i>Due: ${formatDate(notification.durationDate)}
+                                        </small>
+                                      </div>
+                                    </div>
+                                  </div>
+                                `;
                 } else {
                     html += `
                         <div class="notification-item" data-id="${notification.id}">
@@ -534,16 +564,38 @@
 
             content.innerHTML = html;
         }
-                function markDueDateAsRead(notificationId, element) {
-            if (notificationCount > 0) {
-                notificationCount--;
-                updateNotificationBadge();
-            }
-            if (element) {
-                element.remove();
+          function markDueDateAsRead(notificationId, element) {
+            // Get read notifications from localStorage
+            let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+
+            // Check if this notification was already marked as read
+            if (!readNotifications.includes(notificationId)) {
+                // Decrease count and update badge
+                if (notificationCount > 0) {
+                    notificationCount--;
+                    updateNotificationBadge();
+                }
+
+                // Add highlight class
+                element.classList.add('notification-read');
+
+                // Save this notification as read
+                readNotifications.push(notificationId);
+                localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
             }
         }
 
+                    function highlightReadNotifications() {
+            let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+            readNotifications.forEach(id => {
+                const element = document.querySelector(`.notification-item[data-id="${id}"]`);
+                if (element) {
+                    element.classList.add('notification-read');
+                }
+            });
+        }
+
+        // Validation of the Item (Defective or Still Working)
                 function validateDefective(notificationId, approve) {
             const action = approve ? 'validate' : 'return';
             const message = approve ? 'validate this item as defective' : 'return this item to repairing status';
