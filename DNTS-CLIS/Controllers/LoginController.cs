@@ -116,26 +116,41 @@ namespace DNTS_CLIS.Controllers
             _context.Database.ExecuteSqlRaw(queryUserTwo);
 
             string queryUserThree = @"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name = 'RepairRequests')
-BEGIN
-    CREATE TABLE RepairRequests(
-        Id INT IDENTITY(1,1) PRIMARY KEY,
-        ItemId INT NOT NULL,
-        TrackNo NVARCHAR(100) NOT NULL,
-        CTN NVARCHAR(100) NULL,
-        Particular NVARCHAR(255) NULL,
-        Brand NVARCHAR(100) NULL,
-        SerialStickerNumber NVARCHAR(100) NULL,
-        Description NVARCHAR(MAX) NULL,
-        Status NVARCHAR(50) NOT NULL,
-        RequestDate DATETIME NOT NULL,
-        RequestedBy NVARCHAR(100) NULL,
-        Location NVARCHAR(100) NULL,
-        CompletedDate DATETIME NULL,
-        CompletedBy NVARCHAR(100) NULL
-    );
-END";
+                BEGIN
+                    CREATE TABLE RepairRequests(
+                        Id INT IDENTITY(1,1) PRIMARY KEY,
+                        ItemId INT NOT NULL,
+                        TrackNo NVARCHAR(100) NOT NULL,
+                        CTN NVARCHAR(100) NULL,
+                        Particular NVARCHAR(255) NULL,
+                        Brand NVARCHAR(100) NULL,
+                        SerialStickerNumber NVARCHAR(100) NULL,
+                        Description NVARCHAR(MAX) NULL,
+                        Status NVARCHAR(50) NOT NULL,
+                        RequestDate DATETIME NOT NULL,
+                        RequestedBy NVARCHAR(100) NULL,
+                        Location NVARCHAR(100) NULL,
+                        CompletedDate DATETIME NULL,
+                        CompletedBy NVARCHAR(100) NULL
+                    );
+                END";
             _context.Database.ExecuteSqlRaw(queryUserThree);
+
+            string queryUserFour = @"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name = 'Notes')
+                    BEGIN
+                       Create Table dbo.Notes
+                    (
+                     ID int IDENTITY(1,1) PRIMARY KEY,
+                        RepairRequestId int NOT NULL,
+                        Notes nvarchar(3000) NOT NULL,
+                        CreatedBy nvarchar(100),
+                        CreatedDate datetime DEFAULT GETDATE(),
+                        FOREIGN KEY (RepairRequestId) REFERENCES RepairRequests(Id)
+                    )
+                    END";
+            _context.Database.ExecuteSqlRaw(queryUserFour);
         }
+
         public IActionResult Index(LoginViewModel model)
         {
             if (ModelState.IsValid)

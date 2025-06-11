@@ -7,8 +7,8 @@
 
 <h2 style="margin-top:50px;">Repair Requests</h2>
 
-<div class="container mt-4">
-    <div class="card">
+<div class="container-fluid">
+    <div class="card" style="width:1200px;">
         <div class="card-header bg-primary text-white">
             <h4><i class="fas fa-tools"></i> Pending Repair Requests</h4>
         </div>
@@ -52,8 +52,8 @@
                                     <td>@request.RequestedBy</td>
                                     <td>@request.RequestDate.ToString("MMM dd, yyyy HH:mm")</td>
                                     <td style="width:270px;">
-                                        <button class="btn btn-sm btn-info" onclick="viewDetails('@request.Id')">
-                                            <i class="fas fa-eye"></i> Details
+                                        <button class="btn btn-sm" onclick="viewDetails('@request.Id')">
+                                            <img src="~/Images/details.svg" width="35" height="auto" />
                                         </button>
 
                                         @if (request.Status == "Pending")
@@ -65,11 +65,14 @@
                                         }
                                         @if (request.Status == "Repairing")
                                         {
-                                            <button class="btn btn-sm btn-primary" onclick="processRequest('@request.Id', 'complete')">
-                                                <i class="fas fa-check-circle"></i> Complete
+                                            <button class="btn btn-sm" onclick="processRequest('@request.Id', 'complete')">
+                                                <img src="~/Images/check-circle.svg" width="35" height="auto" />
                                             </button>
-                                            <button class="btn btn-sm btn-danger" onclick="processRequest('@request.Id', 'incomplete')">
-                                                <i class="fas fa-times"></i> Incomplete
+                                            <button class="btn btn-sm" onclick="processRequest('@request.Id', 'incomplete')">
+                                                <img src="~/Images/incomplete.svg" width="35" height="auto" />
+                                            </button>
+                                            <button class="btn btn-sm" onclick="openNotesModal(@request.Id)">
+                                                <img src="~/Images/notes.svg" width="35" height="auto" />
                                             </button>
                                         }
                                     </td>
@@ -89,95 +92,193 @@
     </div>
 </div>
 
+<!-- Details Modal -->
 <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="detailsModalLabel">Repair Request Details</h5>
-                <button type="button" class="close" aria-label="Close" onclick="closeDetailsModal()">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title d-flex align-items-center" id="detailsModalLabel">
+                    <i class="fas fa-tools me-2"></i>
+                    Repair Request Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Item ID:</label>
-                            <p id="detailItemId"></p>
-                        </div>
+            <div class="modal-body p-4">
+                <!-- Item Information Card -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 text-primary">
+                            <i class="fas fa-info-circle me-2"></i>Item Information
+                        </h6>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Track No:</label>
-                            <p id="detailTrackNo"></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">CTN:</label>
-                            <p id="detailCTN"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Brand:</label>
-                            <p id="detailBrand"></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Particular:</label>
-                            <p id="detailParticular"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Serial Sticker Number:</label>
-                            <p id="detailSerialStickerNumber"></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Status:</label>
-                            <p id="detailStatus"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Location:</label>
-                            <p id="detailLocation"></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Requested By:</label>
-                            <p id="detailRequestedBy"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Request Date:</label>
-                            <p id="detailRequestDate"></p>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-hashtag me-1"></i>Item ID:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailItemId">-</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-route me-1"></i>Track No:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailTrackNo">-</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-phone me-1"></i>CTN:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailCTN">-</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-tag me-1"></i>Brand:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailBrand">-</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-list-alt me-1"></i>Particular:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailParticular">-</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-barcode me-1"></i>Serial Sticker Number:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailSerialStickerNumber">-</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="font-weight-bold">Description of Damage:</label>
-                    <div class="p-3 bg-light rounded" id="detailDescription"></div>
+
+                <!-- Status & Request Information Card -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 text-primary">
+                            <i class="fas fa-clipboard-list me-2"></i>Status & Request Information
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>Status:
+                                    </label>
+                                    <div id="detailStatus">
+                                        <span class="badge bg-warning text-dark px-3 py-2">
+                                            <i class="fas fa-clock me-1"></i>Pending
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Location:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailLocation">-</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-user me-1"></i>Requested By:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailRequestedBy">-</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>Request Date:
+                                    </label>
+                                    <p class="form-control-plaintext border-bottom pb-1" id="detailRequestDate">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Description Card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 text-primary">
+                            <i class="fas fa-file-alt me-2"></i>Description of Damage
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-light border-start border-4 border-primary mb-0" id="detailDescription">
+                            No description available.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color:#027bce">
             </div>
         </div>
     </div>
 </div>
 
+<!-- Notes Modal -->
+<div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#ffb703">
+                <h5 class="modal-title" id="notesModalLabel">Repair Request Notes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Existing Notes Section -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">Previous Notes:</h6>
+                    <div id="existingNotes" class="border rounded p-3 mb-3" style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa;">
+                        <div class="text-muted">Loading notes...</div>
+                    </div>
+                </div>
+
+                <!-- Add New Note Section -->
+                <div>
+                    <h6 class="fw-bold mb-3">Add New Note:</h6>
+                    <div id="notesForm">
+                        <input type="hidden" id="repairRequestId" value="">
+                        <div class="mb-3">
+                            <textarea class="form-control"
+                                      id="noteText"
+                                      rows="4"
+                                      placeholder="Enter your note here..."
+                                      maxlength="3000"
+                                      required></textarea>
+                            <div class="form-text">
+                                <span id="charCount">0</span>/5000 characters
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveNote()">
+                    <i class="fas fa-save"></i> Save Note
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     // Function to view details
@@ -257,4 +358,164 @@
             alert("Failed to process request: " + error.message);
         });
     }
+
+         var currentRepairRequestId = null;
+
+    // Open notes modal
+    function openNotesModal(repairRequestId) {
+        currentRepairRequestId = repairRequestId;
+        document.getElementById('repairRequestId').value = repairRequestId;
+
+        // Clear form
+        document.getElementById('noteText').value = '';
+        updateCharCount();
+
+        // Load existing notes
+        loadExistingNotes(repairRequestId);
+
+        // Show modal
+        var modal = new bootstrap.Modal(document.getElementById('notesModal'));
+        modal.show();
+    }
+
+    // Load existing notes
+    function loadExistingNotes(repairRequestId) {
+        const existingNotesDiv = document.getElementById('existingNotes');
+        existingNotesDiv.innerHTML = '<div class="text-muted">Loading notes...</div>';
+
+        fetch(`/RepairRequests/GetNotes?repairRequestId=${repairRequestId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.data && data.data.length > 0) {
+                        let notesHtml = '';
+                        data.data.forEach(note => {
+                            const date = new Date(note.createdDate).toLocaleString();
+                            notesHtml += `
+                                <div class="mb-3 p-3 border-bottom">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user"></i> ${note.createdBy || 'Unknown'}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> ${date}
+                                        </small>
+                                    </div>
+                                    <div class="note-content">
+                                        ${escapeHtml(note.notes)}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        existingNotesDiv.innerHTML = notesHtml;
+                    } else {
+                        existingNotesDiv.innerHTML = '<div class="text-muted">No notes available for this repair request.</div>';
+                    }
+                } else {
+                    existingNotesDiv.innerHTML = '<div class="text-danger">Error loading notes: ' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                existingNotesDiv.innerHTML = '<div class="text-danger">Error loading notes: ' + error.message + '</div>';
+            });
+    }
+
+    // Save new note
+    function saveNote() {
+        const repairRequestId = document.getElementById('repairRequestId').value;
+        const noteText = document.getElementById('noteText').value.trim();
+
+        if (!noteText) {
+            alert('Please enter a note before saving.');
+            return;
+        }
+
+        const saveButton = document.querySelector('#notesModal .btn-primary');
+        const originalText = saveButton.innerHTML;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveButton.disabled = true;
+
+        const noteData = {
+            RepairRequestId: parseInt(repairRequestId),
+            Notes: noteText,
+            CreatedBy: getCurrentUsername() // You'll need to implement this function
+        };
+
+        fetch('/RepairRequests/SaveNote', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(noteData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Clear the form
+                document.getElementById('noteText').value = '';
+                updateCharCount();
+
+                // Reload the notes
+                loadExistingNotes(repairRequestId);
+
+                // Show success message
+                showToast('Note saved successfully!', 'success');
+            } else {
+                alert('Error saving note: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error saving note: ' + error.message);
+        })
+        .finally(() => {
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+        });
+    }
+
+    // Update character count
+    function updateCharCount() {
+        const noteText = document.getElementById('noteText');
+        const charCount = document.getElementById('charCount');
+        charCount.textContent = noteText.value.length;
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;")
+             .replace(/\n/g, "<br>");
+    }
+
+    function getCurrentUsername() {
+        return 'Current Technical Assistant or On Call';
+    }
+
+    // Helper function to show toast notifications
+    function showToast(message, type = 'info') {
+        alert(message);
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Character count update
+        const noteTextArea = document.getElementById('noteText');
+        if (noteTextArea) {
+            noteTextArea.addEventListener('input', updateCharCount);
+        }
+
+        // Enter key handling (Ctrl+Enter to save)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                const modal = document.getElementById('notesModal');
+                if (modal.classList.contains('show')) {
+                    saveNote();
+                }
+            }
+        });
+    });
 </script>

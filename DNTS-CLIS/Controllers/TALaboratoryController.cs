@@ -255,7 +255,7 @@ namespace DNTS_CLIS.Controllers
 
             try
             {
-                string username = HttpContext.Session.GetString("Username");
+                string username = HttpContext.Session.GetString("FullName");
                 model.RequestedBy = username;
 
                 using (var conn = new SqlConnection(_connectionString))

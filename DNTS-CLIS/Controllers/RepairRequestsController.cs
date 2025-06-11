@@ -189,7 +189,7 @@ namespace DNTS_CLIS.Controllers
                             return Json(new { success = false, message = "Can only mark as incomplete if status is 'Repairing'." });
                         }
 
-                        // Create notification for supervisor
+                        // Notification for supervisor
                         CreateSupervisorNotification(conn, id);
                     }
                     else if (action == "complete")
@@ -553,6 +553,80 @@ namespace DNTS_CLIS.Controllers
                 return Json(new { success = false, message = "An error occurred: " + ex.Message });
             }
         }
+        [HttpPost]
+        public IActionResult SaveNote([FromBody] SaveNoteModel model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Notes))
+                {
+                    return Json(new { success = false, message = "Note cannot be empty" });
+                }
+
+                var query = @"
+            INSERT INTO dbo.Notes (RepairRequestId, Notes, CreatedBy, CreatedDate)
+            VALUES (@RepairRequestId, @Notes, @CreatedBy, GETDATE())";
+
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@RepairRequestId", model.RepairRequestId);
+                        command.Parameters.AddWithValue("@Notes", model.Notes.Trim());
+                        command.Parameters.AddWithValue("@CreatedBy", model.CreatedBy ?? "System");
+                        command.ExecuteNonQuery();
+                    }
+                }
+                return Json(new { success = true, message = "Note saved successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error saving note: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetNotes(int repairRequestId)
+        {
+            try
+            {
+                var query = @"
+            SELECT ID, RepairRequestId, Notes, CreatedBy, CreatedDate
+            FROM dbo.Notes
+            WHERE RepairRequestId = @RepairRequestId
+            ORDER BY CreatedDate DESC";
+
+                var notes = new List<NoteModel>();
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@RepairRequestId", repairRequestId);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                notes.Add(new NoteModel
+                                {
+                                    Id = reader.GetInt32("ID"), // Note: Your table uses "ID", not "Id"
+                                    RepairRequestId = reader.GetInt32("RepairRequestId"),
+                                    Notes = reader.GetString("Notes"),
+                                    CreatedBy = reader.IsDBNull("CreatedBy") ? "" : reader.GetString("CreatedBy"),
+                                    CreatedDate = reader.GetDateTime("CreatedDate")
+                                });
+                            }
+                        }
+                    }
+                }
+                return Json(new { success = true, data = notes });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error loading notes: " + ex.Message });
+            }
+        }
 
         public class RepairRequestActionModel
         {
@@ -565,5 +639,24 @@ namespace DNTS_CLIS.Controllers
             public int notificationId { get; set; }
             public bool approve { get; set; }
         }
+
+        // Model for saving notes
+        public class SaveNoteModel
+        {
+            public int RepairRequestId { get; set; }
+            public string Notes { get; set; }
+            public string CreatedBy { get; set; }
+        }
+
+        // Model for note display
+        public class NoteModel
+        {
+            public int Id { get; set; }
+            public int RepairRequestId { get; set; }
+            public string Notes { get; set; }
+            public string CreatedBy { get; set; }
+            public DateTime CreatedDate { get; set; }
+        }
+
     }
 }
