@@ -17,14 +17,25 @@
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <div class="mb-3">
+                            <label class="form-label fw-bold">Campus</label>
+                            <select id="campusDropdown" class="form-control border-dark">
+                                <option value="">-- Select Campus --</option>
+                                <option value="CYBER 1 MAIN CAMPUS">CYBER 1 MAIN CAMPUS</option>
+                                <option value="CYBER 2 CAMPUS">CYBER 2 CAMPUS</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
                             <label asp-for="LaboratoryName" class="form-label fw-bold">Laboratory Name</label>
-                            <input asp-for="LaboratoryName" class="form-control border-dark" />
+                            <select asp-for="LaboratoryName" id="laboratoryDropdown" class="form-control border-dark">
+                                <option value="">-- Select Laboratory --</option>
+                            </select>
                             <span asp-validation-for="LaboratoryName" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="CreatedDate" class="form-label fw-bold">Created Date</label>
-                            <input asp-for="CreatedDate" type="date" class="form-control border-dark" />
+                            <input asp-for="CreatedDate" type="date" class="form-control border-dark" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                             <span asp-validation-for="CreatedDate" class="text-danger"></span>
                         </div>
 
@@ -40,7 +51,26 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script>
+        document.getElementById("campusDropdown").addEventListener("change", function () {
+            const campus = this.value;
+            const labDropdown = document.getElementById("laboratoryDropdown");
+
+            labDropdown.innerHTML = '<option value="">-- Select Laboratory --</option>';
+
+            let labCount = 0;
+            if (campus === "CYBER 1 MAIN CAMPUS") labCount = 7;
+            else if (campus === "CYBER 2 CAMPUS") labCount = 5;
+
+            for (let i = 1; i <= labCount; i++) {
+                const labName = `LABORATORY ${i} (${campus})`;
+                const option = document.createElement("option");
+                option.value = labName;
+                option.textContent = labName;
+                labDropdown.appendChild(option);
+            }
+        });
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }

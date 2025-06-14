@@ -108,6 +108,7 @@ namespace DNTS_CLIS.Controllers
             return Json(result);
         }
 
+
         public class EditedItemModel
         {
             public int Id { get; set; }
@@ -266,7 +267,7 @@ namespace DNTS_CLIS.Controllers
 
                     string updateQuery = $@"
                         UPDATE [{safeTableName}]
-                        SET STATUS = 'Pending'
+                        SET STATUS = 'PENDING TO ACCEPT'
                         WHERE ID = @Id";
 
                     using (var cmd = new SqlCommand(updateQuery, conn))
@@ -317,6 +318,7 @@ namespace DNTS_CLIS.Controllers
             public string TrackNo { get; set; }
             public string CTN { get; set; }
             public string Particular { get; set; }
+            public string DateOfAcquisition { get; set; }
             public string Brand { get; set; }
             public string SerialStickerNumber { get; set; }
             public string Status { get; set; }
@@ -373,6 +375,13 @@ namespace DNTS_CLIS.Controllers
                         columns.Add("PARTICULAR");
                         paramNames.Add("@Particular");
                         parameters.Add(new SqlParameter("@Particular", (object)model.Particular ?? DBNull.Value));
+                    }
+
+                    if (columnNames.Any(c => c.Equals("DATEOFACQUISITION", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("DATEOFACQUISITION");
+                        paramNames.Add("@Dateofacquisition");
+                        parameters.Add(new SqlParameter("@Dateofacquisition", (object)model.DateOfAcquisition ?? DBNull.Value));
                     }
 
                     if (columnNames.Any(c => c.Equals("BRAND", StringComparison.OrdinalIgnoreCase)))

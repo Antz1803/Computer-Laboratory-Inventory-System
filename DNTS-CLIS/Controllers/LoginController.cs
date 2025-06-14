@@ -64,6 +64,7 @@ namespace DNTS_CLIS.Controllers
                         Purpose NVARCHAR(255),
                         TodayDate DATETIME DEFAULT GETDATE(),
                         DurationDate DATETIME DEFAULT GETDATE(),
+                        RequestDate DATETIME DEFAULT GETDATE(),
                         Laboratory NVARCHAR(255),
                         ReleasedBy NVARCHAR(255),
                         ReceivedBy NVARCHAR(255)
@@ -92,8 +93,6 @@ namespace DNTS_CLIS.Controllers
                         LastName NVARCHAR(255),
                         Email NVARCHAR(255),
                         Status NVARCHAR(50),
-                        BirthDate NVARCHAR(50),
-                        Age int,
                         Role NVARCHAR(255),
                         AssignLaboratory NVARCHAR(255),
                         Username NVARCHAR(255),

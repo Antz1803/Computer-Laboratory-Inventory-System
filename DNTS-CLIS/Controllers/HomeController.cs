@@ -129,7 +129,7 @@ namespace DNTS_CLIS.Controllers
 
             string baseTrackNo = $"TrackNo_{DateTime.Now:ffff}_{particularValue}";
             string uploaderTable = baseTrackNo;
-            string taTable = baseTrackNo + "_TA";
+            string taTable = baseTrackNo + "_TA.xlsx";
 
             // Create both tables dynamically
             CreateDynamicTable(uploaderTable, dataTable.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList());

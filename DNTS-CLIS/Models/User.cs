@@ -10,8 +10,6 @@ namespace DNTS_CLIS.Models
         public string LastName { get; set; }
         public string Email{ get; set; }
         public string Status { get; set; }
-        public string BirthDate { get; set; }
-        public int Age { get; set; }
         public string Role { get; set; }
         public string AssignLaboratory { get; set; } = "N/A";
         public string Username { get; set; }

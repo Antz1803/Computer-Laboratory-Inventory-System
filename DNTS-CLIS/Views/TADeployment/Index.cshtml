@@ -42,7 +42,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Purpose:</label>
-                                <input type="text" class="form-control" name="Purpose">
+                                <textarea type="text" class="form-control" name="Purpose"></textarea>
                             </div>
                         </div>
 
@@ -54,6 +54,13 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Duration Date:</label>
                                 <input type="date" class="form-control" name="DurationDate">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">                           
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Request Date:</label>
+                                <input type="date" class="form-control" name="RequestDate">
                             </div>
                         </div>
 
@@ -204,65 +211,101 @@
             }
         });
 
-        $(document).on('click', '.add-item', function () {
-            var row = $(this).closest('tr');
-            var serialNumber = row.find('td:nth-child(4)').text();
+        // Add item by row
+           $(document).on('click', '.add-item', function () {
+        var row = $(this).closest('tr');
+        var serialNumber = row.find('td:nth-child(4)').text();
 
+        var exists = $('#equipmentDetailsTableBody tr').filter(function () {
+            return $(this).find('td:nth-child(4)').text() === serialNumber;
+        }).length > 0;
+
+        if (!exists) {
+            var newRow = $('<tr>');
+            newRow.append('<td>' + row.find('td:nth-child(1)').text() + '</td>');
+            newRow.append('<td>' + row.find('td:nth-child(2)').text() + '</td>');
+            newRow.append('<td>' + row.find('td:nth-child(3)').text() + '</td>');
+            newRow.append('<td>' + row.find('td:nth-child(4)').text() + '</td>');
+            newRow.append('<td><button type="button" class="btn btn-danger btn-sm remove-item">Remove</button></td>');
+
+            $('#equipmentDetailsTableBody').append(newRow);
+            $('#equipmentDetailsTableBody tr:first:contains("No equipment added.")').remove();
+
+            // Hide the row from available equipment table
+            row.hide();
+        } else {
+            alert("This equipment is already added.");
+        }
+    });
+
+    $(document).on('click', '.remove-item', function () {
+        var removedRow = $(this).closest('tr');
+        var serialNumber = removedRow.find('td:nth-child(4)').text();
+
+        // Show the corresponding row back in available equipment table
+        $('#equipmentTableBody tr').each(function() {
+            if ($(this).find('td:nth-child(4)').text() === serialNumber) {
+                $(this).show();
+            }
+        });
+
+        removedRow.remove();
+        if ($('#equipmentDetailsTableBody tr:visible').length === 0) {
+            $('#equipmentDetailsTableBody').html('<tr><td colspan="5" class="text-center">No equipment added.</td></tr>');
+        }
+    });
+
+    // Add all item inside the table
+            $('.add-all-item').click(function () {
+        $('#equipmentDetailsTableBody tr:contains("No equipment added.")').remove();
+
+        $('#equipmentTableBody tr').each(function () {
+            var cols = $(this).find('td');
+            if (cols.length < 4 || cols.eq(0).text().includes('No equipment') || cols.eq(0).text().includes('Loading...')) return true;
+
+            var serialNumber = cols.eq(3).text().trim();
             var exists = $('#equipmentDetailsTableBody tr').filter(function () {
-                return $(this).find('td:nth-child(4)').text() === serialNumber;
+                return $(this).find('td:nth-child(4)').text().trim() === serialNumber;
             }).length > 0;
 
             if (!exists) {
                 var newRow = $('<tr>');
-                newRow.append('<td>' + row.find('td:nth-child(1)').text() + '</td>');
-                newRow.append('<td>' + row.find('td:nth-child(2)').text() + '</td>');
-                newRow.append('<td>' + row.find('td:nth-child(3)').text() + '</td>');
-                newRow.append('<td>' + row.find('td:nth-child(4)').text() + '</td>');
+                newRow.append('<td>' + cols.eq(0).text() + '</td>');
+                newRow.append('<td>' + cols.eq(1).text() + '</td>');
+                newRow.append('<td>' + cols.eq(2).text() + '</td>');
+                newRow.append('<td>' + cols.eq(3).text() + '</td>');
                 newRow.append('<td><button type="button" class="btn btn-danger btn-sm remove-item">Remove</button></td>');
 
                 $('#equipmentDetailsTableBody').append(newRow);
-                $('#equipmentDetailsTableBody tr:first:contains("No equipment added.")').remove();
-            } else {
-                alert("This equipment is already added.");
+
+                // Hide the row from available equipment table
+                $(this).hide();
             }
         });
 
-        $('.add-all-item').click(function () {
-            $('#equipmentDetailsTableBody tr:contains("No equipment added.")').remove();
+        if ($('#equipmentDetailsTableBody tr').length === 0) {
+            $('#equipmentDetailsTableBody').html('<tr><td colspan="5" class="text-center">No equipment added.</td></tr>');
+        }
+    });
 
-            $('#equipmentTableBody tr').each(function () {
-                var cols = $(this).find('td');
-                if (cols.length < 4 || cols.eq(0).text().includes('No equipment') || cols.eq(0).text().includes('Loading...')) return true;
+    $(document).on('click', '.remove-item', function () {
+        var removedRow = $(this).closest('tr');
+        var serialNumber = removedRow.find('td:nth-child(4)').text();
 
-                var serialNumber = cols.eq(3).text().trim();
-                var exists = $('#equipmentDetailsTableBody tr').filter(function () {
-                    return $(this).find('td:nth-child(4)').text().trim() === serialNumber;
-                }).length > 0;
-
-                if (!exists) {
-                    var newRow = $('<tr>');
-                    newRow.append('<td>' + cols.eq(0).text() + '</td>');
-                    newRow.append('<td>' + cols.eq(1).text() + '</td>');
-                    newRow.append('<td>' + cols.eq(2).text() + '</td>');
-                    newRow.append('<td>' + cols.eq(3).text() + '</td>');
-                    newRow.append('<td><button type="button" class="btn btn-danger btn-sm remove-item">Remove</button></td>');
-
-                    $('#equipmentDetailsTableBody').append(newRow);
-                }
-            });
-
-            if ($('#equipmentDetailsTableBody tr').length === 0) {
-                $('#equipmentDetailsTableBody').html('<tr><td colspan="5" class="text-center">No equipment added.</td></tr>');
+        // Show the corresponding row back in available equipment table
+        $('#equipmentTableBody tr').each(function() {
+            if ($(this).find('td:nth-child(4)').text() === serialNumber) {
+                $(this).show();
             }
         });
 
-        $(document).on('click', '.remove-item', function () {
-            $(this).closest('tr').remove();
-            if ($('#equipmentDetailsTableBody tr').length === 0) {
-                $('#equipmentDetailsTableBody').html('<tr><td colspan="5" class="text-center">No equipment added.</td></tr>');
-            }
-        });
+        removedRow.remove();
+        if ($('#equipmentDetailsTableBody tr:visible').length === 0) {
+            $('#equipmentDetailsTableBody').html('<tr><td colspan="5" class="text-center">No equipment added.</td></tr>');
+        }
+    });
 
+    // submit form
         $("#deploymentForm").submit(function (e) {
             e.preventDefault();
 
@@ -288,8 +331,10 @@
                 RequestedBy: $("input[name='RequestedBy']").val(),
                 To: $("input[name='To']").val(),
                 From: $("input[name='From']").val(),
-                Purpose: $("input[name='Purpose']").val(),
-                Date: $("input[name='Date']").val(),
+                Purpose: $("textarea[name='Purpose']").val(),
+                TodayDate: $("input[name='TodayDate']").val(),
+                DurationDate: $("input[name='DurationDate']").val(),
+                RequestDate: $("input[name='RequestDate']").val(),
                 Laboratory: $("#laboratoryDropdown").val(),
                 ReleasedBy: $("input[name='ReleasedBy']").val(),
                 ReceivedBy: $("input[name='ReceivedBy']").val(),

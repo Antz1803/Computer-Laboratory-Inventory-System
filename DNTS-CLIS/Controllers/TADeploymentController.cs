@@ -243,9 +243,10 @@ namespace DNTS_CLIS.Controllers
                 RequestedBy NVARCHAR(255),
                 [To] NVARCHAR(255),  
                 [From] NVARCHAR(255),  
-                Purpose NVARCHAR(255),
+                Purpose NVARCHAR(255),               
                 TodayDate DATETIME DEFAULT GETDATE(),
                 DurationDate DATETIME DEFAULT GETDATE(),
+                RequestDate DATETIME DEFAULT GETDATE(),
                 Laboratory NVARCHAR(255),
                 ReleasedBy NVARCHAR(255),
                 ReceivedBy NVARCHAR(255)
@@ -278,9 +279,9 @@ namespace DNTS_CLIS.Controllers
 
                 // Insert into DeploymentInfos
                 var insertDeploymentInfoQuery = @"
-        INSERT INTO DeploymentInfos (RequestedBy, [To], [From], Purpose, TodayDate, DurationDate, Laboratory, ReleasedBy, ReceivedBy)
+        INSERT INTO DeploymentInfos (RequestedBy, [To], [From], Purpose, TodayDate, DurationDate,RequestDate, Laboratory, ReleasedBy, ReceivedBy)
         OUTPUT INSERTED.Id
-        VALUES (@RequestedBy, @To, @From, @Purpose, @TodayDate, @DurationDate, @Laboratory, @ReleasedBy, @ReceivedBy)";
+        VALUES (@RequestedBy, @To, @From, @Purpose, @TodayDate, @DurationDate, @RequestDate, @Laboratory, @ReleasedBy, @ReceivedBy)";
 
                 int deploymentInfoId;
                 using (var cmd = new SqlCommand(insertDeploymentInfoQuery, conn, transaction))
@@ -289,6 +290,7 @@ namespace DNTS_CLIS.Controllers
                     cmd.Parameters.AddWithValue("@To", request.To ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@From", request.From ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Purpose", request.Purpose ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@RequestDate", request.RequestDate);
                     cmd.Parameters.AddWithValue("@TodayDate", request.TodayDate);
                     cmd.Parameters.AddWithValue("@DurationDate", request.DurationDate);
                     cmd.Parameters.AddWithValue("@Laboratory", request.Laboratory ?? (object)DBNull.Value);

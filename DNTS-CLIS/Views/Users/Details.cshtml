@@ -74,16 +74,6 @@
         </div>
 
         <div class="row">
-            <div class="col-sm-4 form-label-bold">BirthDate:</div>
-            <div class="col-sm-8 value-text">@Model.BirthDate</div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-4 form-label-bold">Age:</div>
-            <div class="col-sm-8 value-text">@Model.Age</div>
-        </div>
-
-        <div class="row">
             <div class="col-sm-4 form-label-bold">Status:</div>
             <div class="col-sm-8 value-text">@Model.Status</div>
         </div>
@@ -102,10 +92,6 @@
             <div class="col-sm-8 value-text">@Model.AssignLaboratory</div>
         </div>
 
-        <div class="row">
-            <div class="col-sm-4 form-label-bold">Password:</div>
-            <div class="col-sm-8 value-text">@Model.Password</div>
-        </div>
     </div>
     <div class="details-footer">
         <a asp-action="Edit" asp-route-id="@Model?.UserId" class="btn btn-outline-primary">Edit</a>

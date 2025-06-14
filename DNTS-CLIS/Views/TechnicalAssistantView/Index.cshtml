@@ -4,27 +4,6 @@
     Layout = "~/Views/Shared/_LayoutSupervisor.cshtml";
     ViewData["Title"] = "ASSIGN LABORATORY";
     var selectedTrackNo = ViewBag.SelectedTrackNo as string;
-    var functionalRecords = ViewBag.FunctionalRecords as System.Data.DataTable;
-    var defectiveRecords = ViewBag.DefectiveRecords as System.Data.DataTable;
-    var unknownRecords = ViewBag.UnknownRecords as System.Data.DataTable;
-}
-@{
-    string? dateOfAcquisitionValue = "Not Available";
-
-    System.Data.DataTable[] tables = { functionalRecords, defectiveRecords, unknownRecords };
-
-    foreach (var table in tables)
-    {
-        if (table != null && table.Rows.Count > 0 && table.Columns.Contains("DateofAcquisition"))
-        {
-            var rawDate = table.Rows[0]["DateofAcquisition"];
-            if (rawDate != DBNull.Value && rawDate != null)
-            {
-                dateOfAcquisitionValue = Convert.ToDateTime(rawDate).ToString("MMMM dd, yyyy");
-                break;
-            }
-        }
-    }
 }
 
 <div class="container mt-4">
@@ -35,8 +14,6 @@
                     <h2 class="mb-0" style="font-weight: bold;">@ViewData["Title"]</h2>
                 </div>
                 <div class="card-body">
-                    <h5 class="text-center mb-4">Date of Acquisition: @dateOfAcquisitionValue</h5>
-
                     @* Success/Error Messages *@
                     @foreach (var msg in new[] { "SuccessMessage", "ErrorMessage" })
                     {
@@ -50,7 +27,7 @@
                     <div class="row align-items-end mb-4">
                         <div class="col-md-4 mb-3 mb-md-0">
                             <form method="get" id="trackForm">
-                                <label for="trackNoSelect" class="form-label">Track Number</label>
+                                <label for="trackNoSelect" class="form-label">Select Exel file Uploaded</label>
                                 <select id="trackNoSelect" name="selectedTrackNo" class="form-select" onchange="this.form.submit()">
                                     <option value="">-- Select Track No. --</option>
                                     @foreach (var track in (ViewBag.TrackNumbers as List<string> ?? new List<string>()))
@@ -81,26 +58,31 @@
                         </div>
                     </div>
 
-                    @* Search Bar *@
-                    @if (Model?.Rows.Count > 0)
-                    {
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <input type="text" id="serialSearchInput" class="form-control" placeholder="Search by Serial Number..." autocomplete="off">
-                                    <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" title="Clear Search">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                        @* Search Bar *@
+                        @if (Model?.Rows.Count > 0)
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" id="serialSearchInput" class="form-control" placeholder="Search by Serial Number..." autocomplete="off">
+                                        <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" title="Clear Search">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                <div class="gap-2 mt-1">
+                                <button id="addItemBtn" class="btn btn-success" onclick="openAddModal()">
+                                    <i class="fas fa-plus"></i> Add New Item
+                                </button>
+                                    <small class="text-muted">Search will filter records containing the entered text</small>
+                                    </div>
+                            </div>
+                                <div class="col-md-6 d-flex align-items-center">
+                                    <span id="searchResults" class="text-muted"></span>
                                 </div>
-                                <small class="text-muted">Search will filter records containing the entered text</small>
                             </div>
-                            <div class="col-md-6 d-flex align-items-center">
-                                <span id="searchResults" class="text-muted"></span>
-                            </div>
-                        </div>
-                    }
-
+                        }          
+                     
                     @if (Model?.Rows.Count > 0)
                     {
                         <div class="table-responsive">
@@ -190,6 +172,70 @@
 
                                         <button type="submit" class="btn btn-success mt-3">Save</button>
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal for Adding New Item -->
+                    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content shadow-lg rounded">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-plus-circle"></i> Add New Item
+                                    </h5>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="addForm">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="addCTN">CTN:</label>
+                                                <input type="text" id="addCTN" class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="addParticular">Particular:</label>
+                                                <input type="text" id="addParticular" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <label for="addDateOfAcquisition">Date Of Acquisition:</label>
+                                                <input type="date" id="addDateOfAcquisition" class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="addBrand">Brand:</label>
+                                                <input type="text" id="addBrand" class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="addSerialStickerNumber">Serial Sticker Number:</label>
+                                                <input type="text" id="addSerialStickerNumber" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <label for="addStatus">Status:</label>
+                                                <select id="addStatus" class="form-control">
+                                                    <option value="FUNCTIONAL">FUNCTIONAL</option>
+                                                    <option value="In Use">In Use</option>
+                                                    <option value="Under Repair">Under Repair</option>
+                                                    <option value="Out of Service">Out of Service</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="addLocation">Location:</label>
+                                                <input type="text" id="addLocation" class="form-control">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="$('#addModal').modal('hide');">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button type="button" class="btn btn-success" id="saveAddBtn">
+                                        <i class="fas fa-save"></i> Save Item
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -426,4 +472,94 @@
                 .catch(error => console.error("Update failed:", error));
             });
         });
+
+             // Add Item
+          function openAddModal() {
+            // Check if track number is selected
+            const trackNo = document.getElementById("trackNoSelect").value;
+            if (!trackNo) {
+                alert("Please select a Track No first");
+                return;
+            }
+
+            // Clear the form fields
+            document.getElementById("addForm").reset();
+
+            // Show the modal
+               const modal = new bootstrap.Modal(document.getElementById("addModal"));
+               modal.show();
+        }
+
+        // Handle Save New Item Button Click
+        document.getElementById("saveAddBtn").addEventListener("click", function() {
+            const trackNo = document.getElementById("trackNoSelect").value;
+
+            if (!trackNo) {
+                alert("Track No is required");
+                return;
+            }
+
+            // Validate required fields
+            const ctn = document.getElementById("addCTN").value;
+            const particular = document.getElementById("addParticular").value;
+
+            if (!ctn.trim()) {
+                alert("CTN is required");
+                return;
+            }
+
+            if (!particular.trim()) {
+                alert("Particular is required");
+                return;
+            }
+
+            // Prepare data to send to server
+            const data = {
+                TrackNo: trackNo,
+                CTN: ctn,
+                Particular: particular,
+                DateOfAcquisition: document.getElementById("addDateOfAcquisition").value,
+                Brand: document.getElementById("addBrand").value,
+                SerialStickerNumber: document.getElementById("addSerialStickerNumber").value,
+                Status: document.getElementById("addStatus").value,
+                Location: document.getElementById("addLocation").value
+            };
+
+            console.log("Sending new item data:", data);
+
+            fetch('/TechnicalAssistantView/AddNewItem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || `Server returned ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log("Success:", result);
+                alert("Item added successfully!");
+                $('#addModal').modal('hide');
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Failed to add item: " + error.message);
+            });
+        });
+
+                function formatDateToLongForm(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
     </script>

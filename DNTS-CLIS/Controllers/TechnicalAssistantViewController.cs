@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using static DNTS_CLIS.Controllers.TALaboratoryController;
 
 namespace DNTS_CLIS.Controllers
 {
@@ -365,6 +366,118 @@ namespace DNTS_CLIS.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = $"Error fetching move history: {ex.Message}" });
+            }
+        }
+        [HttpPost]
+        public IActionResult AddNewItem([FromBody] NewItemModel model)
+        {
+            if (model == null)
+            {
+                return BadRequest("Model is null");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.TrackNo))
+            {
+                return BadRequest("TrackNo is required");
+            }
+
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Get table schema to check columns
+                    var schema = new DataTable();
+                    using (var adapter = new SqlDataAdapter($"SELECT TOP 0 * FROM [{model.TrackNo}]", conn))
+                    {
+                        adapter.Fill(schema);
+                    }
+
+                    var columnNames = schema.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+                    string safeTableName = model.TrackNo.Replace("'", "''");
+
+                    // Build insert query based on existing columns
+                    var queryBuilder = new System.Text.StringBuilder();
+                    queryBuilder.Append($"INSERT INTO [{safeTableName}] (");
+
+                    var columns = new List<string>();
+                    var paramNames = new List<string>();
+                    var parameters = new List<SqlParameter>();
+
+                    // Add each column if it exists in the table
+                    if (columnNames.Any(c => c.Equals("CTN", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("CTN");
+                        paramNames.Add("@CTN");
+                        parameters.Add(new SqlParameter("@CTN", (object)model.CTN ?? DBNull.Value));
+                    }
+
+                    if (columnNames.Any(c => c.Equals("PARTICULAR", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("PARTICULAR");
+                        paramNames.Add("@Particular");
+                        parameters.Add(new SqlParameter("@Particular", (object)model.Particular ?? DBNull.Value));
+                    }
+
+                    if (columnNames.Any(c => c.Equals("DATEOFACQUISITION", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("DATEOFACQUISITION");
+                        paramNames.Add("@Dateofacquisition");
+                        parameters.Add(new SqlParameter("@Dateofacquisition", (object)model.DateOfAcquisition ?? DBNull.Value));
+                    }
+
+                    if (columnNames.Any(c => c.Equals("BRAND", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("BRAND");
+                        paramNames.Add("@Brand");
+                        parameters.Add(new SqlParameter("@Brand", (object)model.Brand ?? DBNull.Value));
+                    }
+
+                    if (columnNames.Any(c => c.Equals("SERIALSTICKERNO", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("SERIALSTICKERNO");
+                        paramNames.Add("@SerialStickerNumber");
+                        parameters.Add(new SqlParameter("@SerialStickerNumber", (object)model.SerialStickerNumber ?? DBNull.Value));
+                    }
+
+                    if (columnNames.Any(c => c.Equals("STATUS", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("STATUS");
+                        paramNames.Add("@Status");
+                        parameters.Add(new SqlParameter("@Status", (object)model.Status ?? DBNull.Value));
+                    }
+
+                    // Only include Location if it exists in the table
+                    if (columnNames.Any(c => c.Equals("LOCATION", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        columns.Add("LOCATION");
+                        paramNames.Add("@Location");
+                        parameters.Add(new SqlParameter("@Location", (object)model.Location ?? DBNull.Value));
+                    }
+
+                    queryBuilder.Append(string.Join(", ", columns));
+                    queryBuilder.Append(") VALUES (");
+                    queryBuilder.Append(string.Join(", ", paramNames));
+                    queryBuilder.Append(")");
+
+                    string query = queryBuilder.ToString();
+
+                    using (var cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddRange(parameters.ToArray());
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    return Ok(new { success = true, message = "Item added successfully" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in AddNewItem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                return StatusCode(500, new { success = false, message = $"Internal server error: {ex.Message}" });
             }
         }
     }

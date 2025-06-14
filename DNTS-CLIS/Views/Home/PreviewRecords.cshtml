@@ -62,27 +62,28 @@
 
 
 @{
-    string? dateOfAcquisitionValue = "";
-
     System.Data.DataTable[] tables = { functionalRecords, defectiveRecords, unknownRecords };
-
-    foreach (var table in tables)
-    {
-        if (table != null && table.Rows.Count > 0 && table.Columns.Contains("DateofAcquisition"))
-        {
-            dateOfAcquisitionValue = table.Rows[0]["DateofAcquisition"]?.ToString();
-            if (!string.IsNullOrEmpty(dateOfAcquisitionValue))
-            {
-                break;
-            }
-        }
-    }
 }
 
 <div class="preview-card">
     <div class="preview-header">PREVIEW RECORDS</div>
-    <div class="sub-header">Date of Acquisition: @dateOfAcquisitionValue</div>
     <div class="sub-header text-primary">Data from Table: @ViewBag.TableName</div>
+
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+        <div class="toast show align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="background-color: #ffffff; color: #000000; min-width: 300px;">
+            <div class="toast-header" style="background-color: #ffc107; color: #000000;">
+                <strong class="me-auto">Notice</strong>
+                <small class="text-dark">Just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                If you want to assign the file you uploaded, please go to <strong>File Management</strong> and click <strong>Hardware Deployment</strong>. From there, you can assign the laboratory you want to assign that file to.
+            </div>
+        </div>
+    </div>
+
+
+
 
     <div class="container">
         @foreach (var recordSet in new[] {
