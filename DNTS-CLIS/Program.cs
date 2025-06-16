@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using DNTS_CLIS.Data;
+using DNTS_CLIS.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,27 @@ builder.Services.AddDbContext<DNTS_CLISContext>(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();  // Enable session
 builder.Services.AddHttpContextAccessor();  // Required for session access
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddTransient<EmailService>(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    return new EmailService(
+        config["EmailSettings:SmtpServer"],
+        int.Parse(config["EmailSettings:SmtpPort"]),
+        config["EmailSettings:SmtpUsername"],
+        config["EmailSettings:SmtpPassword"],
+        config["EmailSettings:FromEmail"],
+        config["EmailSettings:FromName"]
+    );
+});
+
 
 var app = builder.Build();
 
@@ -26,7 +48,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseSession(); // Ensure session middleware is used
+app.UseSession(); 
 app.UseAuthorization();
 
 // Define the default route

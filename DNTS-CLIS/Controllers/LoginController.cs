@@ -5,7 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using NuGet.DependencyResolver;
+using System.ComponentModel.DataAnnotations;
 using System.Drawing.Drawing2D;
+using System.Net.Mail;
+using System.Net;
 using System.Security.Principal;
 
 namespace DNTS_CLIS.Controllers
@@ -13,10 +16,13 @@ namespace DNTS_CLIS.Controllers
     public class LoginController : Controller
     {
         private readonly DNTS_CLISContext _context;
-
-        public LoginController(DNTS_CLISContext context)
+        private readonly EmailService _emailService;
+        private readonly IConfiguration _config;
+        public LoginController(DNTS_CLISContext context, EmailService emailService, IConfiguration config)
         {
             _context = context;
+            _emailService = emailService;
+            _config = config;
         }
 
         [HttpGet]
@@ -148,6 +154,24 @@ namespace DNTS_CLIS.Controllers
                     )
                     END";
             _context.Database.ExecuteSqlRaw(queryUserFour);
+
+            string updateUserTableQuery = @"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'User' AND COLUMN_NAME = 'TemporaryPassword')
+                BEGIN
+                    ALTER TABLE [User] ADD TemporaryPassword NVARCHAR(255) NULL;
+                END
+
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'User' AND COLUMN_NAME = 'TemporaryPasswordExpiry')
+                BEGIN
+                    ALTER TABLE [User] ADD TemporaryPasswordExpiry DATETIME NULL;
+                END
+
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'User' AND COLUMN_NAME = 'RequiresPasswordChange')
+                BEGIN
+                    ALTER TABLE [User] ADD RequiresPasswordChange BIT DEFAULT 0;
+                END";
+
+            _context.Database.ExecuteSqlRaw(updateUserTableQuery);
         }
 
         public IActionResult Index(LoginViewModel model)
@@ -170,46 +194,79 @@ namespace DNTS_CLIS.Controllers
                 }
 
                 // Fetch user from database
-                var user = _context.User
-                    .FirstOrDefault(u => u.Username == model.Username && u.Password == model.Password);
+                var user = _context.User.FirstOrDefault(u => u.Username == model.Username);
 
                 if (user != null)
                 {
-                    if (string.IsNullOrEmpty(user.Role))
+                    bool isValidPassword = false;
+                    bool isTemporaryPassword = false;
+
+                    // Check if using temporary password
+                    if (!string.IsNullOrEmpty(user.TemporaryPassword) &&
+                        user.TemporaryPasswordExpiry.HasValue &&
+                        user.TemporaryPasswordExpiry.Value > DateTime.Now &&
+                        user.TemporaryPassword == model.Password)
                     {
-                        ViewBag.ErrorMessage = "Your account has no role assigned.";
-                        return View(model);
+                        isValidPassword = true;
+                        isTemporaryPassword = true;
+                        HttpContext.Session.SetString("RequiresPasswordChange", "true");
+                    }
+                    // Check regular password
+                    else if (user.Password == model.Password)
+                    {
+                        isValidPassword = true;
                     }
 
-                    HttpContext.Session.SetString("Username", user.Username);
-                    HttpContext.Session.SetString("Role", user.Role);
-                    HttpContext.Session.SetString("FullName", $"{user.FirstName} {user.LastName}");
-
-                    if (user.Role.Equals("Technical Assistant", StringComparison.OrdinalIgnoreCase))
+                    if (isValidPassword)
                     {
-                        var assignedLaboratory = _context.AssignedLaboratories
-                            .Where(a => a.LaboratoryName == user.AssignLaboratory)
-                            .Select(a => a.LaboratoryName)
-                            .FirstOrDefault();
-
-                        if (!string.IsNullOrEmpty(assignedLaboratory))
+                        if (string.IsNullOrEmpty(user.Role))
                         {
-                            HttpContext.Session.SetString("AssignedLaboratory", assignedLaboratory);
-                            return RedirectToAction("Index", "TALaboratory");
+                            ViewBag.ErrorMessage = "Your account has no role assigned.";
+                            return View(model);
+                        }
+
+                        HttpContext.Session.SetString("Username", user.Username);
+                        HttpContext.Session.SetString("Role", user.Role);
+                        HttpContext.Session.SetString("FullName", $"{user.FirstName} {user.LastName}");
+
+                        // If user logged in with temporary password, redirect to password change
+                        if (HttpContext.Session.GetString("RequiresPasswordChange") == "true")
+                        {
+                            return RedirectToAction("ResetPassword");
+                        }
+
+                        // Regular login flow
+                        if (user.Role.Equals("Technical Assistant", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var assignedLaboratory = _context.AssignedLaboratories
+                                .Where(a => a.LaboratoryName == user.AssignLaboratory)
+                                .Select(a => a.LaboratoryName)
+                                .FirstOrDefault();
+
+                            if (!string.IsNullOrEmpty(assignedLaboratory))
+                            {
+                                HttpContext.Session.SetString("AssignedLaboratory", assignedLaboratory);
+                                return RedirectToAction("Index", "TALaboratory");
+                            }
+                            else
+                            {
+                                ViewBag.ErrorMessage = "No assigned laboratory found.";
+                                return View(model);
+                            }
+                        }
+                        else if (user.Role.Equals("Supervisor", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return RedirectToAction("Logo", "Home");
                         }
                         else
                         {
-                            ViewBag.ErrorMessage = "No assigned laboratory found.";
+                            ViewBag.ErrorMessage = "Unauthorized role. Access denied.";
                             return View(model);
                         }
                     }
-                    else if (user.Role.Equals("Supervisor", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return RedirectToAction("Logo", "Home");
-                    }
                     else
                     {
-                        ViewBag.ErrorMessage = "Unauthorized role. Access denied.";
+                        ViewBag.ErrorMessage = "Invalid username or password.";
                         return View(model);
                     }
                 }
@@ -223,5 +280,173 @@ namespace DNTS_CLIS.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = _context.User
+                    .FirstOrDefault(u => u.Username == model.Username && u.Email == model.Email);
+
+                if (user != null)
+                {
+                    // Generate temporary password
+                    string tempPassword = GenerateTemporaryPassword();
+
+                    // Update user with temporary password (expires in 24 hours)
+                    user.TemporaryPassword = tempPassword;
+                    user.TemporaryPasswordExpiry = DateTime.Now.AddHours(24);
+                    user.RequiresPasswordChange = true;
+
+                    await _context.SaveChangesAsync();
+
+                    // Safely send email (handles nulls)
+                    bool emailSent = await _emailService.SendPasswordResetEmailAsync(
+                        user.Email ?? string.Empty,
+                        user.Username ?? string.Empty,
+                        tempPassword
+                    );
+
+                    if (emailSent)
+                    {
+                        ViewBag.SuccessMessage = "A temporary password has been sent to your email address.";
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to send email. Please try again or contact support.";
+                    }
+                }
+                else
+                {
+                    ViewBag.ErrorMessage = "Username and email combination not found.";
+                }
+            }
+
+            return View(model);
+        }
+
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            if (HttpContext.Session.GetString("RequiresPasswordChange") != "true")
+            {
+                return RedirectToAction("Index");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ResetPassword(ResetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = _context.User
+                    .FirstOrDefault(u => u.Username == model.Username);
+
+                if (user != null && user.TemporaryPassword == model.TemporaryPassword &&
+                    user.TemporaryPasswordExpiry.HasValue && user.TemporaryPasswordExpiry.Value > DateTime.Now)
+                {
+                    // Update password
+                    user.Password = model.NewPassword;
+                    user.TemporaryPassword = "N/A";
+                    user.TemporaryPasswordExpiry = null;
+                    user.RequiresPasswordChange = false;
+
+                    _context.SaveChanges();
+
+                    // Clear session flag
+                    HttpContext.Session.Remove("RequiresPasswordChange");
+
+                    ViewBag.SuccessMessage = "Password updated successfully. Please login with your new password.";
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    ViewBag.ErrorMessage = "Invalid username or temporary password, or temporary password has expired.";
+                }
+            }
+
+            return View(model);
+        }
+
+        private string GenerateTemporaryPassword()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 8)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+        public async Task<bool> SendPasswordResetEmailAsync(string toEmail, string username, string tempPassword)
+        {
+            try
+            {
+                var smtpHost = _config["EmailSettings:SmtpHost"];
+                var smtpPort = int.Parse(_config["EmailSettings:SmtpPort"]);
+                var smtpUser = _config["EmailSettings:SmtpUser"];
+                var smtpPass = _config["EmailSettings:SmtpPass"];
+                var fromEmail = _config["EmailSettings:FromEmail"];
+
+                var client = new SmtpClient(smtpHost, smtpPort)
+                {
+                    Credentials = new NetworkCredential(smtpUser, smtpPass),
+                    EnableSsl = true
+                };
+
+                var mail = new MailMessage(fromEmail, toEmail)
+                {
+                    Subject = "Temporary Password",
+                    Body = $"Hello {username},\n\nYour temporary password is: {tempPassword}\n\nIt will expire in 24 hours.",
+                    IsBodyHtml = false
+                };
+
+                await client.SendMailAsync(mail);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+    public class ForgotPasswordViewModel
+    {
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; }
+
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+    }
+
+    public class ResetPasswordViewModel
+    {
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; }
+
+        [Required]
+        [Display(Name = "Temporary Password")]
+        public string TemporaryPassword { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "New Password")]
+        [StringLength(100, MinimumLength = 6)]
+        public string NewPassword { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm New Password")]
+        [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+        public string ConfirmNewPassword { get; set; }
     }
 }

@@ -65,6 +65,19 @@ namespace Clis5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("UserId,FirstName,LastName,BirthDate,Age,Email,Status,Role,AssignLaboratory,Username,Password")] User user)
         {
+            if (_context.User.Any(u => u.Username == user.Username))
+            {
+                ModelState.AddModelError("Username", "Username already exists.");
+                ViewBag.Laboratories = _context.Laboratories.ToList();
+                ViewBag.Roles = new List<SelectListItem>
+                {
+                    new SelectListItem { Value = "Supervisor", Text = "Supervisor" },
+                    new SelectListItem { Value = "Property Custodian", Text = "Property Custodian" },
+                    new SelectListItem { Value = "Technical Assistant", Text = "Technical Assistant" }
+                };
+
+                return View(user);
+            }
             if (user.Role == "Supervisor")
             {
                 user.AssignLaboratory = "N/A";
@@ -183,6 +196,11 @@ namespace Clis5.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-     
-    }
+        [HttpGet]
+        public JsonResult IsUsernameAvailable(string username)
+        {
+            bool exists = _context.User.Any(u => u.Username == username);
+            return Json(!exists); 
+        }
+     }
 }

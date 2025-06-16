@@ -6,43 +6,19 @@
 
 <style>
     body {
-        background-image: url('/images/loginbackground.png');
-        background-repeat: no-repeat;
-        background-size: cover;
         background-color: #a3cef1;
-        height: 100vh;
-        margin: 0;
-        display: grid;
-        grid-template-columns: 1fr 2fr;
-        grid-template-rows: auto -1fr;
-        place-items: center;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-
-    .login-wrapper {
-        display: grid;
-        grid-template-rows: auto auto;
-        justify-items: center;
-        align-items: center;
-        gap: 30px;
-        width: 100%;
-        max-width: 1000px;
-    }
-
-    .header-container img {
-        height: auto;
+        min-height: 100vh;
+        overflow: hidden;
     }
 
     .glass-card {
         background: rgba(2, 123, 206, 0.3);
         backdrop-filter: blur(10px);
         border-radius: 15px;
-        box-shadow: 0 -99900px 30px rgba(0, 0, 0, 5.1);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
         padding: 30px;
         width: 100%;
-        max-width: 370px;
-        margin:0px 0px 0px 15px;
+        max-width: 400px;
     }
 
         .glass-card .form-label {
@@ -88,18 +64,16 @@
     }
 </style>
 
-<div class="login-wrapper">
-    <!-- Logo Header -->
-    <div class="header-container text-center">
-        <img src="~/Images/dnts-act.png" alt="DNTS Logo" style="width:530px;" />
+<div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
+    <!-- Header Logo -->
+    <div class="text-center mb-4">
+        <img src="~/Images/dnts-act.png" alt="DNTS Logo" class="img-fluid" style="max-width: 450px;" />
     </div>
 
-    <!-- Login Form -->
-    <div class="glass-card">
-        <div class="text-center">
-            <img class="Logo mb-1" src="~/Images/dnts.png" alt="Small Logo" />
-            <p class="text-white">Sign in to continue</p>
-        </div>
+    <!-- Login Card -->
+    <div class="glass-card text-center">
+        <img class="Logo mb-2" src="~/Images/dnts.png" alt="Small Logo" />
+        <p class="text-white">Sign in to continue</p>
 
         @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
         {
@@ -113,20 +87,24 @@
         <form asp-action="Index" method="post">
             <div asp-validation-summary="None" class="text-danger mb-3"></div>
 
-            <div class="form-group mb-3">
+            <div class="mb-3 text-start">
                 <label asp-for="Username" class="form-label"></label>
                 <input asp-for="Username" class="form-control" placeholder="Enter your username" />
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
-            <div class="form-group mb-3">
-                    <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" type="password" class="form-control" maxlength="8" placeholder="Enter your password" />
-                    <span asp-validation-for="Password" class="text-danger"></span>      
+            <div class="mb-3 text-start">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" type="password" class="form-control"placeholder="Enter your password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
-            <div class="d-grid text-center">
+            <div class="d-grid">
                 <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+
+            <div class="text-center mt-3">
+                <a asp-action="ForgotPassword" class="text-white">Forgot Password?</a>
             </div>
         </form>
     </div>

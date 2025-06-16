@@ -14,7 +14,9 @@ namespace DNTS_CLIS.Models
         public string AssignLaboratory { get; set; } = "N/A";
         public string Username { get; set; }
         [Required]
-        [StringLength(8, ErrorMessage = "Password cannot be more than 8 characters.")]
         public string Password { get; set; }
+        public string TemporaryPassword { get; set; }
+        public DateTime? TemporaryPasswordExpiry { get; set; }
+        public bool? RequiresPasswordChange { get; set; }
     }
 }
