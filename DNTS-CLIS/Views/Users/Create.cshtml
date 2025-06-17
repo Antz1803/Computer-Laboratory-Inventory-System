@@ -56,7 +56,9 @@
                     <div class="col-md-6" style="margin-top:55px;">
                         <input type="text" name="Status" value="Active" id="status" hidden/>         
                     </div>
-
+                    <div class="col-md-6" style="margin-top:55px;">
+                        <input type="text" name="TemporaryPassword" value="N/A" id="status" hidden />
+                    </div>
                     <div class="col-md-6">
                         <label for="roleDropdown" class="form-label">Select Role</label>
                         <select asp-for="Role" asp-items="ViewBag.Roles" class="form-select" id="roleDropdown">

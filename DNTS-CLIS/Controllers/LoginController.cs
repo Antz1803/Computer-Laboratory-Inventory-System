@@ -308,10 +308,10 @@ namespace DNTS_CLIS.Controllers
 
                     // Safely send email (handles nulls)
                     bool emailSent = await _emailService.SendPasswordResetEmailAsync(
-                        user.Email ?? string.Empty,
-                        user.Username ?? string.Empty,
-                        tempPassword
-                    );
+                         user.Email ?? string.Empty,
+                         $"{user.FirstName ?? string.Empty} {user.LastName ?? string.Empty}".Trim(),
+                         tempPassword
+                     );
 
                     if (emailSent)
                     {
