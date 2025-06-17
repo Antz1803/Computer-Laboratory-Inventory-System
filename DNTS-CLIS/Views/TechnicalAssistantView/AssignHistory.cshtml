@@ -93,7 +93,7 @@
         }
     }
 
-    function fetchTableData() {
+       function fetchTableData() {
         let trackNo = document.getElementById("selectedTrackNo").value;
         let tableHead = document.getElementById("tableHead");
         let tableBody = document.getElementById("tableBody");
@@ -131,14 +131,19 @@
                         headerRow.appendChild(th);
                     });
 
-                    // Create table rows for each data item
                     data.forEach(row => {
                         let tr = document.createElement("tr");
 
-                        // Add each column value as a cell
                         columns.forEach(column => {
                             let td = document.createElement("td");
-                            td.textContent = row[column] !== null ? row[column] : '';
+
+                            let cellValue = row[column];
+                            if (cellValue === null || cellValue === undefined || typeof cellValue === 'object') {
+                                td.textContent = 'N/A';
+                            } else {
+                                td.textContent = cellValue;
+                            }
+
                             td.className = "text-nowrap";
                             tr.appendChild(td);
                         });
@@ -203,4 +208,40 @@
         document.body = originalBody;
     }
 
+        document.addEventListener("DOMContentLoaded", function () {
+        // Format date columns specifically
+        function formatDateColumns() {
+            // Target all table cells and check their content for dates
+            const allCells = document.querySelectorAll('#trackTable tbody td');
+
+            allCells.forEach(cell => {
+                const dateText = cell.textContent.trim();
+                // Check if the cell contains a date in YYYY-MM-DD or YYYY-M-D format
+                if (dateText && dateText.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+                    const date = new Date(dateText);
+                    if (!isNaN(date.getTime())) {
+                        cell.textContent = date.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    }
+                }
+            });
+        }
+
+        // Format dates whenever the table content changes
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    setTimeout(formatDateColumns, 100);
+                }
+            });
+        });
+
+        const tableBody = document.getElementById('tableBody');
+        if (tableBody) {
+            observer.observe(tableBody, { childList: true, subtree: true });
+        }
+    });
 </script>

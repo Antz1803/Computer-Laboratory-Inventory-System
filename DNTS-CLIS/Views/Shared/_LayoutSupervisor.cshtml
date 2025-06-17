@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="~/Clis5.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-   
+
         html, body {
             height: 100%;
             margin: 0;
@@ -243,6 +243,35 @@
             background-color: #a3cef1;
             opacity: 0.7;
         }
+
+        /* Remarks styling */
+        .notification-remarks {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            color: #155724;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Receive button styling */
+        .receive-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            .receive-button:hover {
+                background-color: #218838;
+            }
+
         /* Main content expands to push footer down */
         .container {
             flex: 1;
@@ -468,9 +497,9 @@
                     const aRead = readNotifications.includes(a.id);
                     const bRead = readNotifications.includes(b.id);
 
-                    if (aRead === bRead) return 0;     
-                    if (aRead) return 1;             
-                    return -1;                      
+                    if (aRead === bRead) return 0;
+                    if (aRead) return 1;
+                    return -1;
                 });
 
                 displayNotifications(allNotifications);
@@ -504,33 +533,49 @@
             }
 
             let html = '';
+            // Get received items from localStorage
+            const receivedItems = JSON.parse(localStorage.getItem('receivedItems') || '[]');
+
             notifications.forEach(notification => {
                 if (notification.type === 'deployment') {
-                           html += `
-                                  <div class="notification-item" data-id="${notification.id}" onclick="markDueDateAsRead(${notification.id}, this)" style="cursor: pointer;">
-                                    <div class="notification-content">
-                                      <div class="notification-icon" style="background: #ffc107;">
-                                        <i class="fas fa-calendar-times"></i>
-                                      </div>
-                                      <div class="notification-details">
-                                        <h6 class="notification-title">Deployment Due Date</h6>
-                                        <p class="notification-description">
-                                          Deployment at <strong>${notification.laboratory}</strong> has the following items due on ${formatDate(notification.durationDate)}:
-                                        </p>
-                                        <ul>
-                                          ${notification.deployItems.map(item => `
+                    const isReceived = receivedItems.includes(notification.id);
+
+                    html += `
+                        <div class="notification-item" data-id="${notification.id}" onclick="markDueDateAsRead(${notification.id}, this)" style="cursor: pointer;">
+                            <div class="notification-content">
+                                <div class="notification-icon" style="background: #ffc107;">
+                                    <i class="fas fa-calendar-times"></i>
+                                </div>
+                                <div class="notification-details">
+                                    <h6 class="notification-title">Deployment Due Date</h6>
+                                    <p class="notification-description">
+                                        Deployment at <strong>${notification.laboratory}</strong> has the following items due on ${formatDate(notification.durationDate)}:
+                                    </p>
+                                    <ul>
+                                        ${notification.deployItems.map(item => `
                                             <li>
-                                              <strong>${item.particular || 'N/A'}</strong> - SN: ${item.serialcontrolnumber || 'N/A'}
+                                                <strong>${item.particular || 'N/A'}</strong> - SN: ${item.serialcontrolnumber || 'N/A'}
                                             </li>
-                                          `).join('')}
-                                        </ul>
-                                        <small class="notification-time">
-                                          <i class="fas fa-calendar me-1"></i>Due: ${formatDate(notification.durationDate)}
-                                        </small>
-                                      </div>
-                                    </div>
-                                  </div>
-                                `;
+                                        `).join('')}
+                                    </ul>
+                                    <small class="notification-time">
+                                        <i class="fas fa-calendar me-1"></i>Due: ${formatDate(notification.durationDate)}
+                                    </small>
+                                    ${!isReceived ? `
+                                        <div class="notification-actions">
+                                            <button class="receive-button" onclick="markAsReceived(${notification.id}, event)">
+                                                <i class="fas fa-check me-1"></i>Receive
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <div class="notification-remarks">
+                                            <i class="fas fa-check-circle me-1"></i>Already Received
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     html += `
                         <div class="notification-item" data-id="${notification.id}">
@@ -564,28 +609,58 @@
 
             content.innerHTML = html;
         }
-          function markDueDateAsRead(notificationId, element) {
-            // Get read notifications from localStorage
-            let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
 
-            // Check if this notification was already marked as read
-            if (!readNotifications.includes(notificationId)) {
-                // Decrease count and update badge
+        // Function to mark items as received
+        function markAsReceived(notificationId, event) {
+            // Prevent the notification click event
+            event.stopPropagation();
+
+            // Get received items from localStorage
+            let receivedItems = JSON.parse(localStorage.getItem('receivedItems') || '[]');
+
+            // Notification to received items
+            if (!receivedItems.includes(notificationId)) {
+                receivedItems.push(notificationId);
+                localStorage.setItem('receivedItems', JSON.stringify(receivedItems));
+
+                // Find the notification element and update it
+                const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
+                if (notificationElement) {
+                    // Highlight class when receive button is clicked
+                    notificationElement.classList.add('notification-read');
+
+                    // Mark as read in localStorage
+                    let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+                    if (!readNotifications.includes(notificationId)) {
+                        readNotifications.push(notificationId);
+                        localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+                    }
+
+                    // Remove the receive button
+                    const actionsDiv = notificationElement.querySelector('.notification-actions');
+                    if (actionsDiv) {
+                        actionsDiv.remove();
+                    }
+
+                    // Remarks section
+                    const detailsDiv = notificationElement.querySelector('.notification-details');
+                    if (detailsDiv) {
+                        const remarksDiv = document.createElement('div');
+                        remarksDiv.className = 'notification-remarks';
+                        remarksDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i>Already Received';
+                        detailsDiv.appendChild(remarksDiv);
+                    }
+                }
+
+                // Update notification count
                 if (notificationCount > 0) {
                     notificationCount--;
                     updateNotificationBadge();
                 }
-
-                // Add highlight class
-                element.classList.add('notification-read');
-
-                // Save this notification as read
-                readNotifications.push(notificationId);
-                localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
             }
         }
 
-                    function highlightReadNotifications() {
+        function highlightReadNotifications() {
             let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
             readNotifications.forEach(id => {
                 const element = document.querySelector(`.notification-item[data-id="${id}"]`);
@@ -596,7 +671,7 @@
         }
 
         // Validation of the Item (Defective or Still Working)
-                function validateDefective(notificationId, approve) {
+        function validateDefective(notificationId, approve) {
             const action = approve ? 'validate' : 'return';
             const message = approve ? 'validate this item as defective' : 'return this item to repairing status';
 

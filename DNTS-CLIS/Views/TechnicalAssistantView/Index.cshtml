@@ -553,13 +553,40 @@
             });
         });
 
-                function formatDateToLongForm(dateStr) {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+                  document.addEventListener("DOMContentLoaded", function () {
+        // Format date columns specifically
+        function formatDateColumns() {
+            // Target cells in columns that contain date information
+            const dateCells = document.querySelectorAll('td[data-column*="Date"], td[data-column*="DATE"], td[data-column*="Acquisition"]');
+
+            dateCells.forEach(cell => {
+                const dateText = cell.textContent.trim();
+                if (dateText && dateText.match(/^\d{4}-\d{1,2}-\d{1,2}/)) {
+                    const date = new Date(dateText);
+                    if (!isNaN(date.getTime())) {
+                        cell.textContent = date.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    }
+                }
             });
         }
+
+        formatDateColumns();
+
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    formatDateColumns();
+                }
+            });
+        });
+
+        const tableBody = document.getElementById('tableBody');
+        if (tableBody) {
+            observer.observe(tableBody, { childList: true, subtree: true });
+        }
+        });
     </script>
