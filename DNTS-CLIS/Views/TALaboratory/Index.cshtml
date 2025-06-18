@@ -67,9 +67,9 @@
 <div class="search-container">
     <!-- TrackNo Dropdown -->
     <div class="form-group" style="width:245px;">
-        <label for="selectedTrackNo">Select Track No:</label>
+        <label for="selectedTrackNo">Select Excel File:</label>
         <select id="selectedTrackNo" class="form-control" onchange="fetchTableData()" style="text-align:center;">
-            <option value="">-- Select Track No --</option>
+            <option value="">-- Select Excel File --</option>
             @foreach (var trackNo in ViewBag.TrackNos)
             {
                 <option value="@trackNo">@trackNo</option>
