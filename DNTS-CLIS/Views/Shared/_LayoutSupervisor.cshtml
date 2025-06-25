@@ -455,7 +455,6 @@
                 });
         }
 
-
         function updateNotificationBadge() {
             const badge = document.getElementById('notificationBadge');
             if (notificationCount > 0) {
@@ -503,9 +502,6 @@
                 });
 
                 displayNotifications(allNotifications);
-
-                // Highlight read notifications AFTER rendering
-                highlightReadNotifications();
             })
             .catch(error => {
                 console.error('Error loading notifications:', error);
@@ -517,7 +513,6 @@
                 `;
             });
         }
-
 
         function displayNotifications(notifications) {
             const content = document.getElementById('notificationContent');
@@ -626,9 +621,6 @@
                 // Find the notification element and update it
                 const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
                 if (notificationElement) {
-                    // Highlight class when receive button is clicked
-                    notificationElement.classList.add('notification-read');
-
                     // Mark as read in localStorage
                     let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
                     if (!readNotifications.includes(notificationId)) {
@@ -658,16 +650,6 @@
                     updateNotificationBadge();
                 }
             }
-        }
-
-        function highlightReadNotifications() {
-            let readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
-            readNotifications.forEach(id => {
-                const element = document.querySelector(`.notification-item[data-id="${id}"]`);
-                if (element) {
-                    element.classList.add('notification-read');
-                }
-            });
         }
 
         // Validation of the Item (Defective or Still Working)
@@ -713,7 +695,6 @@
                 alert('An error occurred while processing the request.');
             });
         }
-
 
         function formatDate(dateString) {
             const date = new Date(dateString);
