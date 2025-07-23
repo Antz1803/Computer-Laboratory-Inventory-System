@@ -150,6 +150,7 @@ namespace Clis5.Controllers
             if (user.Role == "Supervisor" || user.Role == "Property Custodian")
             {
                 user.AssignLaboratory = "N/A";
+                user.TemporaryPassword = "N/A";
             }
 
 
