@@ -1,0 +1,27 @@
+# Use the official Microsoft .NET SDK image to build the project
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy the csproj file and restore dependencies
+COPY ["DNTS_CLIS.csproj", "./"]
+RUN dotnet restore "DNTS_CLIS.csproj"
+
+# Copy the rest of the application files and build it
+COPY . .
+RUN dotnet build "DNTS_CLIS.csproj" -c Release -o /app/build
+
+# Publish the application to an optimized production folder
+FROM build AS publish
+RUN dotnet publish "DNTS_CLIS.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Use the lightweight ASP.NET runtime image for final execution
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Expose port 10000 for Render binding routing
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
+
+# Set the entry point to run the DNTS_CLIS DLL
+ENTRYPOINT ["dotnet", "DNTS_CLIS.dll"]
