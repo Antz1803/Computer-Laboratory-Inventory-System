@@ -1,4 +1,4 @@
-﻿using DNTS_CLIS.Data;
+using DNTS_CLIS.Data;
 using DNTS_CLIS.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +18,7 @@ namespace DNTS_CLIS.Controllers
         private readonly DNTS_CLISContext _context;
         private readonly EmailService _emailService;
         private readonly IConfiguration _config;
+
         public LoginController(DNTS_CLISContext context, EmailService emailService, IConfiguration config)
         {
             _context = context;
@@ -31,149 +32,124 @@ namespace DNTS_CLIS.Controllers
             EnsureTrackRecordsTableExists();
             return View();
         }
-        // If the table is not exist automatically create
+
+        // If the table does not exist, automatically create it (PostgreSQL Compatible)
         private void EnsureTrackRecordsTableExists()
         {
             string query = @"
-        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'TrackRecords')
-        BEGIN
-            CREATE TABLE TrackRecords (
-                Id INT IDENTITY(1,1) PRIMARY KEY,
-                TrackNo NVARCHAR(255) NOT NULL,
-                ReceiverName NVARCHAR(255) NOT NULL,
-                CreatedDate DATETIME NOT NULL
-            );
-        END";
-
+            CREATE TABLE IF NOT EXISTS ""TrackRecords"" (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""TrackNo"" VARCHAR(255) NOT NULL,
+                ""ReceiverName"" VARCHAR(255) NOT NULL,
+                ""CreatedDate"" TIMESTAMP NOT NULL
+            );";
             _context.Database.ExecuteSqlRaw(query);
 
             string createTableQuery = @"
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AssignedLaboratories')
-                BEGIN
-                    CREATE TABLE AssignedLaboratories (
-                        Id INT IDENTITY(1,1) PRIMARY KEY,
-                        TrackNo NVARCHAR(255) UNIQUE,
-                        LaboratoryName NVARCHAR(255),
-                    )
-                END";
-
+            CREATE TABLE IF NOT EXISTS ""AssignedLaboratories"" (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""TrackNo"" VARCHAR(255) UNIQUE,
+                ""LaboratoryName"" VARCHAR(255)
+            );";
             _context.Database.ExecuteSqlRaw(createTableQuery);
 
             var createTablesQueryOne = @"
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'DeploymentInfos')
-                BEGIN
-                    CREATE TABLE DeploymentInfos (
-                        Id INT IDENTITY(1,1) PRIMARY KEY,
-                        RequestedBy NVARCHAR(255),
-                        [To] NVARCHAR(255),  
-                        [From] NVARCHAR(255),  
-                        Purpose NVARCHAR(255),
-                        TodayDate DATETIME DEFAULT GETDATE(),
-                        DurationDate DATETIME DEFAULT GETDATE(),
-                        RequestDate DATETIME DEFAULT GETDATE(),
-                        Laboratory NVARCHAR(255),
-                        ReleasedBy NVARCHAR(255),
-                        ReceivedBy NVARCHAR(255)
-                    )
-                END;
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'DeployItems')
-                BEGIN
-                    CREATE TABLE DeployItems (
-                        Id INT IDENTITY(1,1) PRIMARY KEY,
-                        DeploymentInfoId INT,
-                        Particular NVARCHAR(255),
-                        Brand NVARCHAR(255),
-                        Quantity INT,
-                        SerialControlNumber NVARCHAR(255),
-                        FOREIGN KEY (DeploymentInfoId) REFERENCES DeploymentInfos(Id) ON DELETE CASCADE
-                    )
-                END;";
+            CREATE TABLE IF NOT EXISTS ""DeploymentInfos"" (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""RequestedBy"" VARCHAR(255),
+                ""To"" VARCHAR(255),  
+                ""From"" VARCHAR(255),  
+                ""Purpose"" VARCHAR(255),
+                ""TodayDate"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ""DurationDate"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ""RequestDate"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ""Laboratory"" VARCHAR(255),
+                ""ReleasedBy"" VARCHAR(255),
+                ""ReceivedBy"" VARCHAR(255)
+            );
+            
+            CREATE TABLE IF NOT EXISTS ""DeployItems"" (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""DeploymentInfoId"" INT,
+                ""Particular"" VARCHAR(255),
+                ""Brand"" VARCHAR(255),
+                ""Quantity"" INT,
+                ""SerialControlNumber"" VARCHAR(255),
+                FOREIGN KEY (""DeploymentInfoId"") REFERENCES ""DeploymentInfos""(""Id"") ON DELETE CASCADE
+            );";
             _context.Database.ExecuteSqlRaw(createTablesQueryOne);
 
             string queryUser = @"
-        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'User')
-        BEGIN
-            CREATE TABLE [User](
-                UserId INT IDENTITY(1,1) PRIMARY KEY,
-               FirstName NVARCHAR(255),
-                        LastName NVARCHAR(255),
-                        Email NVARCHAR(255),
-                        Status NVARCHAR(50),
-                        Role NVARCHAR(255),
-                        AssignLaboratory NVARCHAR(255),
-                        Username NVARCHAR(255),
-                        Password NVARCHAR(255)
-            );
-        END";
-
+            CREATE TABLE IF NOT EXISTS ""User"" (
+                ""UserId"" SERIAL PRIMARY KEY,
+                ""FirstName"" VARCHAR(255),
+                ""LastName"" VARCHAR(255),
+                ""Email"" VARCHAR(255),
+                ""Status"" VARCHAR(50),
+                ""Role"" VARCHAR(255),
+                ""AssignLaboratory"" VARCHAR(255),
+                ""Username"" VARCHAR(255),
+                ""Password"" VARCHAR(255)
+            );";
             _context.Database.ExecuteSqlRaw(queryUser);
 
             string queryUserTwo = @"
-        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Laboratories')
-        BEGIN
-            CREATE TABLE Laboratories (
-    [Id]             INT IDENTITY(1, 1) NOT NULL,
-    [LaboratoryName] NVARCHAR(50) NULL,
-    [CreatedDate]    DATE NULL );
-        END"
-            ;
-
+            CREATE TABLE IF NOT EXISTS ""Laboratories"" (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""LaboratoryName"" VARCHAR(50) NULL,
+                ""CreatedDate"" DATE NULL 
+            );";
             _context.Database.ExecuteSqlRaw(queryUserTwo);
 
-            string queryUserThree = @"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name = 'RepairRequests')
-                BEGIN
-                    CREATE TABLE RepairRequests(
-                        Id INT IDENTITY(1,1) PRIMARY KEY,
-                        ItemId INT NOT NULL,
-                        TrackNo NVARCHAR(100) NOT NULL,
-                        CTN NVARCHAR(100) NULL,
-                        Particular NVARCHAR(255) NULL,
-                        Brand NVARCHAR(100) NULL,
-                        SerialStickerNumber NVARCHAR(100) NULL,
-                        Description NVARCHAR(MAX) NULL,
-                        Status NVARCHAR(50) NOT NULL,
-                        RequestDate DATETIME NOT NULL,
-                        RequestedBy NVARCHAR(100) NULL,
-                        Location NVARCHAR(100) NULL,
-                        CompletedDate DATETIME NULL,
-                        CompletedBy NVARCHAR(100) NULL
-                    );
-                END";
+            string queryUserThree = @"
+            CREATE TABLE IF NOT EXISTS ""RepairRequests"" (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""ItemId"" INT NOT NULL,
+                ""TrackNo"" VARCHAR(100) NOT NULL,
+                ""CTN"" VARCHAR(100) NULL,
+                ""Particular"" VARCHAR(255) NULL,
+                ""Brand"" VARCHAR(100) NULL,
+                ""SerialStickerNumber"" VARCHAR(100) NULL,
+                ""Description"" TEXT NULL,
+                ""Status"" VARCHAR(50) NOT NULL,
+                ""RequestDate"" TIMESTAMP NOT NULL,
+                ""RequestedBy"" VARCHAR(100) NULL,
+                ""Location"" VARCHAR(100) NULL,
+                ""CompletedDate"" TIMESTAMP NULL,
+                ""CompletedBy"" VARCHAR(100) NULL
+            );";
             _context.Database.ExecuteSqlRaw(queryUserThree);
 
-            string queryUserFour = @"IF NOT EXISTS(SELECT * FROM sys.tables WHERE name = 'Notes')
-                    BEGIN
-                       Create Table dbo.Notes
-                    (
-                     ID int IDENTITY(1,1) PRIMARY KEY,
-                        RepairRequestId int NOT NULL,
-                        Notes nvarchar(3000) NOT NULL,
-                        CreatedBy nvarchar(100),
-                        CreatedDate datetime DEFAULT GETDATE(),
-                        FOREIGN KEY (RepairRequestId) REFERENCES RepairRequests(Id)
-                    )
-                    END";
+            string queryUserFour = @"
+            CREATE TABLE IF NOT EXISTS ""Notes"" (
+                ""ID"" SERIAL PRIMARY KEY,
+                ""RepairRequestId"" INT NOT NULL,
+                ""Notes"" VARCHAR(3000) NOT NULL,
+                ""CreatedBy"" VARCHAR(100),
+                ""CreatedDate"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (""RepairRequestId"") REFERENCES ""RepairRequests""(""Id"")
+            );";
             _context.Database.ExecuteSqlRaw(queryUserFour);
 
             string updateUserTableQuery = @"
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'User' AND COLUMN_NAME = 'TemporaryPassword')
-                BEGIN
-                    ALTER TABLE [User] ADD TemporaryPassword NVARCHAR(255) NULL;
-                END
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='User' AND column_name='TemporaryPassword') THEN
+                    ALTER TABLE ""User"" ADD COLUMN ""TemporaryPassword"" VARCHAR(255) NULL;
+                END IF;
 
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'User' AND COLUMN_NAME = 'TemporaryPasswordExpiry')
-                BEGIN
-                    ALTER TABLE [User] ADD TemporaryPasswordExpiry DATETIME NULL;
-                END
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='User' AND column_name='TemporaryPasswordExpiry') THEN
+                    ALTER TABLE ""User"" ADD COLUMN ""TemporaryPasswordExpiry"" TIMESTAMP NULL;
+                END IF;
 
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'User' AND COLUMN_NAME = 'RequiresPasswordChange')
-                BEGIN
-                    ALTER TABLE [User] ADD RequiresPasswordChange BIT DEFAULT 0;
-                END";
-
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='User' AND column_name='RequiresPasswordChange') THEN
+                    ALTER TABLE ""User"" ADD COLUMN ""RequiresPasswordChange"" BOOLEAN DEFAULT FALSE;
+                END IF;
+            END $$;";
             _context.Database.ExecuteSqlRaw(updateUserTableQuery);
         }
 
+        [HttpPost]
         public IActionResult Index(LoginViewModel model)
         {
             if (ModelState.IsValid)
@@ -199,7 +175,6 @@ namespace DNTS_CLIS.Controllers
                 if (user != null)
                 {
                     bool isValidPassword = false;
-                    bool isTemporaryPassword = false;
 
                     // Check if using temporary password
                     if (!string.IsNullOrEmpty(user.TemporaryPassword) &&
@@ -208,7 +183,6 @@ namespace DNTS_CLIS.Controllers
                         user.TemporaryPassword == model.Password)
                     {
                         isValidPassword = true;
-                        isTemporaryPassword = true;
                         HttpContext.Session.SetString("RequiresPasswordChange", "true");
                     }
                     // Check regular password
@@ -307,7 +281,7 @@ namespace DNTS_CLIS.Controllers
                     await _context.SaveChangesAsync();
 
                     // Safely send email (handles nulls)
-                    bool emailSent = await _emailService.SendPasswordResetEmailAsync(
+                    bool emailSent = await SendPasswordResetEmailAsync(
                          user.Email ?? string.Empty,
                          $"{user.FirstName ?? string.Empty} {user.LastName ?? string.Empty}".Trim(),
                          tempPassword
@@ -330,7 +304,6 @@ namespace DNTS_CLIS.Controllers
 
             return View(model);
         }
-
 
         [HttpGet]
         public IActionResult ResetPassword()
@@ -383,6 +356,7 @@ namespace DNTS_CLIS.Controllers
             return new string(Enumerable.Repeat(chars, 8)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
         public async Task<bool> SendPasswordResetEmailAsync(string toEmail, string username, string tempPassword)
         {
             try
@@ -415,6 +389,7 @@ namespace DNTS_CLIS.Controllers
             }
         }
     }
+
     public class ForgotPasswordViewModel
     {
         [Required]
