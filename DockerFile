@@ -2,12 +2,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy the csproj file and restore dependencies
-COPY ["DNTS_CLIS.csproj", "./"]
-RUN dotnet restore "DNTS_CLIS.csproj"
+# Copy the csproj file from its subfolder and restore dependencies
+COPY ["DNTS-CLIS/DNTS_CLIS.csproj", "DNTS-CLIS/"]
+RUN dotnet restore "DNTS-CLIS/DNTS_CLIS.csproj"
 
 # Copy the rest of the application files and build it
 COPY . .
+WORKDIR "/src/DNTS-CLIS"
 RUN dotnet build "DNTS_CLIS.csproj" -c Release -o /app/build
 
 # Publish the application to an optimized production folder
