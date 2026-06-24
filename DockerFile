@@ -2,15 +2,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy the csproj file and restore dependencies natively
-COPY ["DNTS-CLIS.csproj", "./"]
-RUN dotnet restore "DNTS-CLIS.csproj"
+# 1. Note the folder uses a DASH (-) but the file inside uses a DASH (-) too!
+COPY ["DNTS-CLIS/DNTS-CLIS.csproj", "DNTS-CLIS/"]
+RUN dotnet restore "DNTS-CLIS/DNTS-CLIS.csproj"
 
-# Copy the rest of the application files and build it
+# Copy the entire workspace code over
 COPY . .
+
+# Move inside the project folder to execute the compiler builds
+WORKDIR "/src/DNTS-CLIS"
 RUN dotnet build "DNTS-CLIS.csproj" -c Release -o /app/build
 
-# Publish the application to an optimized production folder
+# Publish compilation binaries to output context
 FROM build AS publish
 RUN dotnet publish "DNTS-CLIS.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
@@ -23,5 +26,5 @@ COPY --from=publish /app/publish .
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 
-# Set the entry point to run the DNTS_CLIS DLL
-ENTRYPOINT ["dotnet", "DNTS-CLIS.dll"]
+# Run the app assembly (Notice the assembly output compiles with an underscore)
+ENTRYPOINT ["dotnet", "DNTS_CLIS.dll"]
